@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
+
+    <title>Connect ~ Visual DB</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/starter-template.css" rel="stylesheet">
+  </head>
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="about">Visual DB</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="/">Connect</a></li>
+            <li class="active"><a href="databases">Databases<% if $db_name %> :: <%= $db_name %><% end %></a></li>
+            <li><a href="tables">Tables<% if $table_name %> :: <%= $table_name %><% end %></a></li>
+            <li><a href="query">Query</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="starter-template">
+        <h1>Please select a Database to Use:</h1>
+        <% if $db_name %>
+          <div style="color:green">Using "<%= $db_name %>" Database</div>
+        <% end %>
+        <% if !$db_action_response.nil? %>
+          <div style="color:green"><%= $db_action_response %></div>
+        <% end %>
+        <div style="width:350px; margin-left:auto; margin-right:auto">
+          <form style="margin-top:40px;" method="post" action="/databases">
+            <select class="form-control" name="select_database" id="select_database">
+              <% $db_list.each do |database| %>
+                <% if database == $db_name %>
+                  <option selected><%= database %></option>
+                <% else %>
+                  <option><%= database %></option>
+                <% end %>
+              <% end %>
+            </select>
+            <% if $db_list.length > 0 %>
+              <input class="btn btn-block btn-primary" type="submit" value="Select DB" style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px"/>
+            <% end %>
+          </form>
+          <div style="margin-top:60px;">
+          <form style="" method="post" action="/database">
+            <!--<div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; margin-top:35px; width:200px" onclick="show_create()">Create New DB</div>-->
+            <input class="form-control" name="database" value="" placeholder="New database name">
+            <input type="hidden" name="action" value="create">
+            <input class="btn btn-block btn-primary" type="submit" value="Create Database" style="margin-bottom:10px; margin-top:5px; width:200px; margin-left:auto; margin-right:auto;">
+          </form>
+        </div>
+        <div style="margin-top:30px;">
+          <form style="" method="post" action="/database">
+            <!--<div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px">Drop DB</div>-->
+            <input class="form-control" name="database" value="" placeholder="Name of Database to Delete">
+            <input type="hidden" name="action" value="delete">
+            <input class="btn btn-block btn-primary" type="submit" value="Delete Database" style="margin-bottom:10px; margin-top:5px; width:200px; margin-left:auto; margin-right:auto;">
+          </form>
+        </div>
+        </div>
+      </div>
+
+    </div><!-- /.container -->
+
+  <script type="javascript">
+
+
+  </script>
+  </body>
+</html>

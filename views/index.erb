@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
+
+    <title>Connect ~ Visual DB</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/starter-template.css" rel="stylesheet">
+  </head>
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="about">Visual DB</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="/">Connect</a></li>
+            <li><a href="databases">Databases<% if $db_name %> :: <%= $db_name %><% end %></a></li>
+            <li><a href="tables">Tables<% if $table_name %> :: <%= $table_name %><% end %></a></li>
+            <li><a href="query">Query</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+
+    <div class="container">
+
+      <div class="starter-template">
+        <h1>Please enter your mySQL credentials:</h1>
+        <% if $sql_conn %>
+          <div style="color:green">Connection Success</div>
+        <% else %>
+          <div style="color:red">Not Connected</div>
+        <% end %>
+        <div style="width:350px; margin-left:auto; margin-right:auto">
+          <form style="margin-top:40px;" method="post" action="/connect">
+            <b>Host:</b>
+            <input class="form-control" name="hostname" id="hostname" value="localhost" >
+            <b>Port:</b>
+            <input class="form-control" name="port" id="port" value="3306" >
+            <b>Username:</b>
+            <input class="form-control" name="username" id="username" value="root" autofocus />
+            <b>Password:</b>
+            <input class="form-control" name="password" id="password" placeholder="" >
+            <input class="btn btn-block btn-primary" type="submit" value="Connect" style="margin-left:auto; margin-right:auto; margin-top:40px; width:200px"/>
+          </form>
+        </div>
+        <% if $sql_conn %>
+          <form style="" method="post" action="/disconnect">
+            <input class="btn btn-block btn-primary" type="submit" value="Disconnect"style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px;"/>
+          </form>
+        <% end %>
+      </div>
+
+    </div><!-- /.container -->
+
+
+  </body>
+</html>
