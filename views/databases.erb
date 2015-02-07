@@ -41,7 +41,7 @@
     <div class="container">
 
       <div class="starter-template">
-        <h1>Please select a Database to Use:</h1>
+        <h2>Please select a Database to Use</h2>
         <% if $db_name %>
           <div style="color:green">Using "<%= $db_name %>" Database</div>
         <% end %>
@@ -63,25 +63,24 @@
               <input class="btn btn-block btn-primary" type="submit" value="Select DB" style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px"/>
             <% end %>
           </form>
-          <div style="margin-top:60px;">
-          <form style="" method="post" action="/database">
-            <!--<div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; margin-top:35px; width:200px" onclick="show_create()">Create New DB</div>-->
-            <input class="form-control" name="database" value="" placeholder="New database name">
-            <input type="hidden" name="action" value="create">
-            <input class="btn btn-block btn-primary" type="submit" value="Create Database" style="margin-bottom:10px; margin-top:5px; width:200px; margin-left:auto; margin-right:auto;">
-          </form>
-        </div>
-        <div style="margin-top:30px;">
-          <form style="" method="post" action="/database">
-            <!--<div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px">Drop DB</div>-->
-            <input class="form-control" name="database" value="" placeholder="Name of Database to Delete">
-            <input type="hidden" name="action" value="delete">
-            <input class="btn btn-block btn-primary" type="submit" value="Delete Database" style="margin-bottom:10px; margin-top:5px; width:200px; margin-left:auto; margin-right:auto;">
-          </form>
-        </div>
-        </div>
-      </div>
 
+          <div class="well" style="margin-left:auto; margin-right:auto; margin-top:60px;">
+            <form style="" method="post" action="/database">
+              <!--<div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; margin-top:35px; width:200px" onclick="show_create()">Create New DB</div>-->
+              <input class="form-control" name="database" value="" placeholder="New Database Name">
+              <input type="hidden" name="action" value="create">
+              <input class="btn btn-block btn-primary" type="submit" value="Create Database" style="margin-bottom:10px; margin-top:5px; width:200px; margin-left:auto; margin-right:auto;">
+            </form>
+            
+            <form style="margin-top:30px;" method="post" action="/database">
+              <!--<div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px">Drop DB</div>-->
+              <input class="form-control" name="database" value="" placeholder="Name of Database to Delete">
+              <input type="hidden" name="action" value="delete">
+              <input class="btn btn-block btn-primary" type="submit" value="Delete Database" style="margin-bottom:10px; margin-top:5px; width:200px; margin-left:auto; margin-right:auto;">
+            </form>
+          </div><!--/.well -->
+        </div>
+      </div><!-- /.starter-template -->
     </div><!-- /.container -->
 
   <script type="javascript">

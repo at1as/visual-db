@@ -41,7 +41,7 @@
   <div class="container">
 
     <div class="starter-template">
-      <h1>Please Select a Table from those Available:</h1>
+      <h2>Please Select a Table</h2>
       <% if $table_name %>
       <div style="color:green">Inspecting "<%= $table_name %>" Table from "<%= $db_name %>"</div>
       <% end %>
@@ -68,24 +68,36 @@
           </form>
         </div>
         <div style="margin-top:10px;"><b>Number of Tables:</b> <%= $db_tables.length %></div>
-        <div style="">
-        <div style="margin-top:30px; margin-left: auto; margin-right:auto">
-          <span style="display:inline-block; margin-left:auto; margin-right:auto;">
-            <input class="form-control" name="database" value="" placeholder="New table name" style="width:350px; margin-left: auto; margin-right:auto">
-          </span>
-          <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
-            <div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; width:150px">Create New Table</div>
-          </span>
+        <div class="well" style="width:600px; margin-left:auto; margin-right:auto; margin-top:40px;" >
+          <!-- START CREATE TABLE -->
+          <form method="post" action="">
+            <input type="hidden" name="action" value="create">
+            <div style="margin-left: auto; margin-right:auto">
+              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
+                <input class="form-control" name="database" value="" placeholder="New table Name<% if $db_name %> in <%= $db_name %><% end %>" style="width:350px; margin-left: auto; margin-right:auto">
+              </span>
+              <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
+                <div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; width:150px">Create New Table</div>
+              </span>
+            </div>
+          </form>
+          <! -- END CREATE TABLE -->
+
+          <!-- START DELETE TABLE -->
+          <form method="post" action="/table">
+            <input type="hidden" name="action" value="delete">
+            <div style="margin-top:20px; margin-left: auto; margin-right:auto">
+              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
+                <input class="form-control" name="table" value="" placeholder="Name of Table to Delete<% if $db_name %> from <%= $db_name %><% end %>" style="width:350px; margin-left: auto; margin-right:auto">
+              </span>
+              <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
+                <input class="btn btn-block btn-primary" type="submit" value="Delete Table" style="margin-left:auto; margin-right:auto; width:150px">
+              </span>
+            </div>
+          </form>
+          <!-- END DELETE TABLE -->
         </div>
-        <div style="margin-top:20px; margin-left: auto; margin-right:auto">
-          <span style="display:inline-block; margin-left:auto; margin-right:auto;">
-            <input class="form-control" name="database" value="" placeholder="Delete table name" style="width:350px; margin-left: auto; margin-right:auto">
-          </span>
-          <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
-            <div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; width:150px">Delete Table</div>
-          </span>
-        </div>
-      </div>
+        
         <!-- START TABLE DISPLAY -->
         <% if $full_table %>
         <div style="margin-top:35px; width:100%;">
