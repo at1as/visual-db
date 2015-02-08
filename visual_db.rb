@@ -10,12 +10,12 @@ helpers do
 end
 
 configure do
-	$sql_conn   = false			  # The my SQL connection object
-	$db_list    = false			  # List of available Databases
-	$db_name    = false			  # Name of currently selected Database
-	$db_tables  = false			  # List of Tables for currently selected Database
-	$table_name = false			  # Name of currently selected Table
-	$db_action_response = nil # To propagate error/success from SQL queries
+	$sql_conn   = false			# The my SQL connection object
+	$db_list    = false			# List of available Databases
+	$db_name    = false			# Name of currently selected Database
+	$db_tables  = false		  # List of Tables for currently selected Database
+	$table_name = false		  # Name of currently selected Table
+	$db_error   = nil      # To propagate error/success from SQL queries
 end
 
 def sql_connect(host, username = "root", password = "", database = "", port = 3306)
@@ -23,7 +23,7 @@ def sql_connect(host, username = "root", password = "", database = "", port = 33
 		$sql_conn = Mysql.new(host, username, password, database, port)
 	rescue Mysql::Error
 		$sql_conn = false
-		puts "Error connecting to Database => #{Mysql::Error}"
+		$db_error = "Error connecting to Database => #{Mysql::Error}"
 	end
 end
 
@@ -34,16 +34,24 @@ end
 
 def connection_redir(location)
   if !$sql_conn
+    $db_error = "Bind to MySql"
     redirect "#{location}"
   end
 end
 
 def database_redir(location)
   if !$db_name
+    $db_error = "Select a Database before configuring tables"
     redirect "#{location}"
   end
 end
 
+
+after  do
+  # TODO: Error notifications persist too long
+  next unless request.post?
+  $db_error = nil
+end
 
 get '/?' do
 	erb :index
@@ -68,13 +76,11 @@ end
 
 get '/databases' do
 	connection_redir '/'
-  
+ 
   show_dbs = $sql_conn.query "SHOW DATABASES"
   $db_list = []
   show_dbs.each do |db| $db_list += db end
-
-  #$db_action_response = nil
-
+  
   erb :databases
 end
 
@@ -88,22 +94,19 @@ post '/database' do
 	if params[:action] == "create"
 		begin 
 			$sql_conn.query "CREATE DATABASE #{params[:database]}"
-			#$db_action_response = "Success creating #{params[:database]}"
 		rescue Mysql::Error => e
-			puts "Error creating new database => #{e.errno} : #{e.error}"
-			#$db_action_response = "Faliure creating #{params[:database]}" + $!.inspect
+			$db_error = "Error creating #{params[:database]} => #{e.errno} : #{e.error}"
 		end
 	elsif params[:action] == "delete"
 		begin
 			$sql_conn.query "DROP DATABASE IF EXISTS #{params[:database]}"
-			#$db_action_response = "Success deleting #{params[:database]}"
 		rescue Mysql::Error => e
-			puts "Error deleting existing database #{e.errno} : #{ e.error}"
-			#$db_action_response = "Failure deleting #{params[:database]}"
-		end
+			$db_error = "Error deleting #{params[:database]} => #{e.errno} : #{e.error}"
+    end
+    if params[:database] == $db_name then $db_name = nil end
 	end
-	redirect '/databases'
-	#$db_action_response = nil
+	
+  redirect '/databases'
 end
 
 
@@ -121,9 +124,6 @@ get '/tables' do
     $full_table = $sql_conn.query "SELECT * FROM #{$db_name}.#{$table_name}"
   end
 
-  #puts $full_table.nil?
-  #puts "SELECT * FROM #{$db_name}.#{$table_name}"
-
   erb :tables
 end
 
@@ -136,17 +136,41 @@ end
 post '/table' do
   if params[:action] == "create"
     # TODO
+    begin
+      $sql_conn.query "CREATE TABLE #{$db_name}.#{params[:new_table]}"
+    rescue Mysql::Error => e
+      $db_error = "Error creating table #{params[:new_table]} => #{e.errno} : #{e.error}"
+    end
   elsif params[:action] == "delete"
     begin
       $sql_conn.query "DROP TABLE IF EXISTS #{$db_name}.#{params[:table]}"
     rescue Mysql::Error => e
-      puts "Error dropping table => #{e.errno} : #{e.error}"
+      $db_error = "Error dropping table #{params[:table]} from database #{$db_name} => #{e.errno} : #{e.error}"
     end
-    $table_name =  nil
+    if params[:table] == $table_name then $table_name =  nil end
   end
   
   redirect '/tables'
 end
+
+post '/table/query' do
+  if params[:action] == "insert"
+    begin
+      $sql_conn.query "INSERT INTO #{$db_name}.#{$table_name} #{params[:add_row]}"
+    rescue Mysql::Error => e
+      $db_error = "Error inserting #{params[:add_row]} into #{$db_name} => #{e.errno} : #{e.error}"
+    end
+  elsif params[:action] == "delete"
+    begin
+      $sql_conn.query "DELETE FROM #{$db_name}.#{$table_name} WHERE #{params[:delete_row]}"
+    rescue Mysql::Error => e
+      $db_error = "Error removing #{params[:add_row]} from #{$db_name} => #{e.errno} : #{e.error}"
+    end
+  end
+
+  redirect '/tables'
+end
+
 
 
 get '/query' do
@@ -161,9 +185,18 @@ post '/query' do
     if query[-1, 1] == ";" then query << ";" end
     $sql_conn.query "#{query}"
   rescue Mysql::Error => e
-    puts "Query (#{query}) resulted in error => #{e.errno} : #{e.error}"
+    $db_error = "Query \"#{query}\" resulted in error => #{e.errno} : #{e.error}"
   end
 
   erb :query
 end
+
+
+#post 'csv' do
+#  CSV.generate do |csv|
+#    $sql_conn.query "SELECT * FROM #{$db_name}.#{$table_name}".each { |row|
+#      csv << row
+#    }
+#  end
+#end
 

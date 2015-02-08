@@ -41,33 +41,35 @@
     <div class="container">
 
       <div class="starter-template">
-        <h2>Please enter your mySQL credentials</h2>
+
         <% if $sql_conn %>
-          <div style="color:green">Connection Success</div>
+          <h2 style="color:green">Successfully Connected</h2>
         <% else %>
-          <div style="color:red"><b>Not Connected</b></div>
+          <h2>Please enter your MySQL credentials</h2>
         <% end %>
-        <div style="width:350px; margin-left:auto; margin-right:auto">
-          <form style="margin-top:40px;" method="post" action="/connect">
-            <b>Host:</b>
+        <div class="well" style="width:350px; margin-left:auto; margin-right:auto; margin-top:40px">
+          <form method="post" action="/connect">
+            <b>Host</b>
             <input class="form-control" name="hostname" id="hostname" value="localhost" >
-            <b>Port:</b>
+            <b>Port</b>
             <input class="form-control" name="port" id="port" value="3306" >
-            <b>Username:</b>
+            <b>Username</b>
             <input class="form-control" name="username" id="username" value="root" autofocus />
-            <b>Password:</b>
+            <b>Password</b>
             <input class="form-control" name="password" id="password" placeholder="" >
             <% if !$sql_conn %>
-              <input class="btn btn-block btn-primary" type="submit" value="Connect" style="margin-left:auto; margin-right:auto; margin-top:40px; width:200px"/>
+              <input class="btn btn-block btn-primary" type="submit" value="Connect" style="margin-left:auto; margin-right:auto; margin-top:30px; width:200px"/>
             <% end %>
           </form>
-        </div>
-        <% if $sql_conn %>
-          <form style="margin-top:40px" method="post" action="/disconnect">
-            <input class="btn btn-block btn-primary" type="submit" value="Disconnect"style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px;"/>
+        
+          <% if $sql_conn %>
+          <form style="margin-top:30px" method="post" action="/disconnect">
+            <input class="btn btn-block btn-primary" type="submit" value="Disconnect"style="margin-left:auto; margin-right:auto; width:200px;"/>
           </form>
-        <% end %>
-      </div>
+          <% end %>
+        
+        </div><!-- /.well -->
+      </div><!-- /.starter-template -->
 
     </div><!-- /.container -->
 

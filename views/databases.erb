@@ -41,42 +41,54 @@
     <div class="container">
 
       <div class="starter-template">
-        <h2>Please select a Database to Use</h2>
+        
         <% if $db_name %>
-          <div style="color:green">Using "<%= $db_name %>" Database</div>
+          <h2>Using <span style="color:green"><%= $db_name %></span> Database</h2>
+        <% else %>
+          <h2>Please select Database</h2>
         <% end %>
-        <% if !$db_action_response.nil? %>
-          <div style="color:green"><%= $db_action_response %></div>
+        <% if !$db_error.nil? %>
+          <div style="color:red"><%= $db_error %></div>
         <% end %>
         <div style="width:350px; margin-left:auto; margin-right:auto">
-          <form style="margin-top:40px;" method="post" action="/databases">
-            <select class="form-control" name="select_database" id="select_database">
-              <% $db_list.each do |database| %>
-                <% if database == $db_name %>
-                  <option selected><%= database %></option>
-                <% else %>
-                  <option><%= database %></option>
-                <% end %>
-              <% end %>
-            </select>
-            <% if $db_list.length > 0 %>
-              <input class="btn btn-block btn-primary" type="submit" value="Select DB" style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px"/>
-            <% end %>
-          </form>
 
-          <div class="well" style="margin-left:auto; margin-right:auto; margin-top:60px;">
+
+          <div class="well" style="margin-left:auto; margin-right:auto; margin-top:40px;">
+            
+            <form style="margin-top:20px;" method="post" action="/databases">
+              <select class="form-control" name="select_database" id="select_database">
+                <% $db_list.each do |database| %>
+                  <% if database == $db_name %>
+                    <option selected><%= database %></option>
+                  <% else %>
+                    <option><%= database %></option>
+                  <% end %>
+                <% end %>
+              </select>
+              <% if $db_list.length > 0 %>
+                <input class="btn btn-block btn-primary" type="submit" value="Use Database" style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px"/>
+            <% end %>
+            </form>
+            
+            <hr style="border-color:#CCC; margin-top:30px; margin-bottom:30px;">
+
             <form style="" method="post" action="/database">
               <!--<div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; margin-top:35px; width:200px" onclick="show_create()">Create New DB</div>-->
-              <input class="form-control" name="database" value="" placeholder="New Database Name">
+              <input class="form-control" name="database" value="" placeholder="CREATE <database>">
               <input type="hidden" name="action" value="create">
-              <input class="btn btn-block btn-primary" type="submit" value="Create Database" style="margin-bottom:10px; margin-top:5px; width:200px; margin-left:auto; margin-right:auto;">
+              <input class="btn btn-block" type="submit" value="Create Database" style="margin-bottom:10px; margin-top:10px; width:200px; margin-left:auto; margin-right:auto;">
             </form>
             
             <form style="margin-top:30px;" method="post" action="/database">
               <!--<div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px">Drop DB</div>-->
-              <input class="form-control" name="database" value="" placeholder="Name of Database to Delete">
+              <!--<input class="form-control" name="database" value="" placeholder="Name of Database to Delete">-->
               <input type="hidden" name="action" value="delete">
-              <input class="btn btn-block btn-primary" type="submit" value="Delete Database" style="margin-bottom:10px; margin-top:5px; width:200px; margin-left:auto; margin-right:auto;">
+              <select class="form-control" name="database" id="database">
+                <% $db_list.each do |database| %>
+                  <option><%= database %></option>
+                <% end %>
+              </select>
+              <input class="btn btn-block" type="submit" value="Delete Database" style="margin-bottom:10px; margin-top:10px; width:200px; margin-left:auto; margin-right:auto;">
             </form>
           </div><!--/.well -->
         </div>

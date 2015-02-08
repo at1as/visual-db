@@ -42,7 +42,9 @@
 
       <div class="starter-template">
         <h2>Enter a manual SQL query</h2>
-
+        <% if !$db_error.nil? %>
+          <div style="color:red"><%= $db_error %></div>
+        <% end %>
           <div style="width:550px; margin-left:auto; margin-right:auto">
             <form style="margin-top:40px;" method="post" action="/query">
              <input class="form-control" name="query" id="query" placeholder="SQL Query">

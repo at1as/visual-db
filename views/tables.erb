@@ -41,13 +41,20 @@
   <div class="container">
 
     <div class="starter-template">
-      <h2>Please Select a Table</h2>
       <% if $table_name %>
-      <div style="color:green">Inspecting "<%= $table_name %>" Table from "<%= $db_name %>"</div>
+        <h2>Inspecting <span style="color:green"><%= $table_name %></span> from <span style="color:green"><%= $db_name %></span></h2>
+      <% else %>
+        <h2>Please select a Table from "<%= $db_name %>"</h2>
       <% end %>
+      <% if !$db_error.nil? %>
+         <div style="color:red"><%= $db_error %></div>
+      <% end %>
+      
       <div style="margin-left:auto; margin-right:auto">
-        <div style="margin-top:40px;">
+        <div class="well" style="width:600px; margin-left:auto; margin-right:auto; margin-top:40px; margin-bottom:60px;" >
+          <div style="margin-top:0px; margin-bottom:10px;"><b>Number of Tables:</b> <%= $db_tables.length %></div>
           
+          <!-- START SELECT TABLE -->
             <form method="post" action="/tables" style="display:inline-block">
               <span style="display:inline-block">
               <select class="form-control" name="select_table" id="select_table" style="width:350px;">
@@ -65,58 +72,96 @@
               <input class="btn btn-block btn-primary" type="submit" value="Select Table" style="margin-left:auto; margin-right:auto; width:150px"/>
               <% end %>
             </span>
-          </form>
-        </div>
-        <div style="margin-top:10px;"><b>Number of Tables:</b> <%= $db_tables.length %></div>
-        <div class="well" style="width:600px; margin-left:auto; margin-right:auto; margin-top:40px;" >
+         </form>
+
           <!-- START CREATE TABLE -->
-          <form method="post" action="">
+          <form method="post" action="/table">
             <input type="hidden" name="action" value="create">
-            <div style="margin-left: auto; margin-right:auto">
+            <div style="margin-top:10px; margin-left: auto; margin-right:auto">
               <span style="display:inline-block; margin-left:auto; margin-right:auto;">
-                <input class="form-control" name="database" value="" placeholder="New table Name<% if $db_name %> in <%= $db_name %><% end %>" style="width:350px; margin-left: auto; margin-right:auto">
+                <input class="form-control" name="new_table" value="" placeholder="CREATE TABLE <TABLE_NAME (FIELDS)>" style="width:350px; margin-left: auto; margin-right:auto">
               </span>
               <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
-                <div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; width:150px">Create New Table</div>
+                <input class="btn btn-block" type="submit" value="Create New Table" style="margin-left:auto; margin-right:auto; width:150px">
               </span>
             </div>
           </form>
-          <! -- END CREATE TABLE -->
 
           <!-- START DELETE TABLE -->
+          <% if $db_tables.length > 0 %>
           <form method="post" action="/table">
             <input type="hidden" name="action" value="delete">
-            <div style="margin-top:20px; margin-left: auto; margin-right:auto">
+            <div style="margin-top:10px; margin-left: auto; margin-right:auto">
               <span style="display:inline-block; margin-left:auto; margin-right:auto;">
-                <input class="form-control" name="table" value="" placeholder="Name of Table to Delete<% if $db_name %> from <%= $db_name %><% end %>" style="width:350px; margin-left: auto; margin-right:auto">
+                <select class="form-control" name="table" id="table" style="width:350px;">
+                  <% $db_tables.each do |table_name| %>
+                  <% if table_name == $table_name %>
+                  <option selected><%=table_name%></option>
+                  <% else %>
+                  <option><%=table_name%></option>
+                  <% end %>
+                  <% end %>
+                </select>
               </span>
               <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
-                <input class="btn btn-block btn-primary" type="submit" value="Delete Table" style="margin-left:auto; margin-right:auto; width:150px">
+                <input class="btn btn-block" type="submit" value="Delete Table" style="margin-left:auto; margin-right:auto; width:150px">
               </span>
             </div>
           </form>
-          <!-- END DELETE TABLE -->
+          <% end %>
+
+          <!-- START INSERT INTO TABLE -->
+          <% if $table_name %>          
+            
+          <hr style="border-color:#CCC">
+
+          <form method="post" action="/table/query">
+            <ul style="list-style-type: none; padding:0">
+              <li style="margin:0"><b>Number of Rows:</b> <%= $full_table.num_rows %> </li>
+              <li><b>Number of Columns:</b> <%= $full_table.num_fields %> </li>
+              <li><b>Number of Cells:</b> <%= $full_table.num_rows * $full_table.num_fields %> </li>
+            </ul>
+            <input type="hidden" name="action" value="insert">
+            <div style="margin-left: auto; margin-right:auto">
+              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
+                <input class="form-control" name="add_row" value="" placeholder="INSERT INTO <% if $db_name %><%= $table_name %><% end %> <(fields) VALUES (values)>" style="width:350px; margin-left: auto; margin-right:auto">
+              </span>
+              <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
+                <input class="btn btn-block btn-primary" type="submit" value="Insert Into Table" style="margin-left:auto; margin-right:auto; width:150px">
+              </span>
+            </div>
+          </form>
+          
+          <!-- START DELETE FROM TABLE -->
+          <form method="post" action="/table/query">
+            <input type="hidden" name="action" value="delete">
+            <div style="margin-top:10px; margin-left: auto; margin-right:auto">
+              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
+                <input class="form-control" name="delete_row" value="" placeholder="DELETE FROM <% if $db_name %><%= $table_name %><% end %> WHERE <CLAUSE>" style="width:350px; margin-left: auto; margin-right:auto">
+              </span>
+              <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
+                <input class="btn btn-block" type="submit" value="Remove from Table" style="margin-left:auto; margin-right:auto; width:150px">
+              </span>
+            </div>
+
+          </form>
+        <% end %>
         </div>
         
         <!-- START TABLE DISPLAY -->
         <% if $full_table %>
         <div style="margin-top:35px; width:100%;">
-          <div style="margin-top:0px; margin-left:auto; margin-right:auto; margin-bottom: 5px; width:100%">
-            <ul style="list-style-type: none; padding:0">
-              <li style="margin:0"><b>Number of Rows:</b> <%= $full_table.num_rows %> </li>
-              <li><b>Number of Columns:</b> <%= $full_table.num_fields %> </li>
-              <li><b>Number of Cells:</b> <%= $full_table.num_rows * $full_table.num_fields %> </li>
-            </ul> 
-          </div>
           <div style="display:table; margin: 0 auto">
-            <table>
-              <tr>
+            <table style="display:block; max-width:1000px; overflow:scroll;">
+              <tr><!--HEADERS-->
                 <% $full_table.num_fields.times do |i| %>
                 <td style="border:1px solid #000; padding:10px; background-color:#555; color: #FFF">
                   <%= $full_table.fetch_field_direct(i).name %>
                 </td>
                 <% end %>
               </tr>
+
+              <!--BODY-->
               <% $full_table.num_rows.times do %>
               <tr>
                 <% row_contents = $full_table.fetch_row %>
