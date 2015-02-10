@@ -30,7 +30,9 @@
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
             <li><a href="/">Connect</a></li>
-            <li class="active"><a href="databases">Databases<% if $db_name %> :: <%= $db_name %><% end %></a></li>
+            <li class="active">
+              <a href="databases">Databases<% if $db_name %> :: <span style="color:green"><%= $db_name %></span><% end %></a>
+            </li>
             <li><a href="tables">Tables<% if $table_name %> :: <%= $table_name %><% end %></a></li>
             <li><a href="query">Query</a></li>
           </ul>
@@ -43,9 +45,9 @@
       <div class="starter-template">
         
         <% if $db_name %>
-          <h2>Using <span style="color:green"><%= $db_name %></span> Database</h2>
+          <h3>Using <span style="color:green"><%= $db_name %></span> Database</h3>
         <% else %>
-          <h2>Please select Database</h2>
+          <h3>Please select Database</h3>
         <% end %>
         <% if !$db_error.nil? %>
           <div style="color:red"><%= $db_error %></div>
@@ -74,7 +76,7 @@
 
             <form style="" method="post" action="/database">
               <!--<div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; margin-top:35px; width:200px" onclick="show_create()">Create New DB</div>-->
-              <input class="form-control" name="database" value="" placeholder="CREATE <database>">
+              <input class="form-control" name="database" value="" placeholder="Database Name">
               <input type="hidden" name="action" value="create">
               <input class="btn btn-block" type="submit" value="Create Database" style="margin-bottom:10px; margin-top:10px; width:200px; margin-left:auto; margin-right:auto;">
             </form>

@@ -15,7 +15,11 @@ configure do
 	$db_name    = false			# Name of currently selected Database
 	$db_tables  = false		  # List of Tables for currently selected Database
 	$table_name = false		  # Name of currently selected Table
-	$db_error   = nil      # To propagate error/success from SQL queries
+	$db_error   = nil       # To propagate error/success from SQL queries
+
+  set :show_exceptions, true
+  set :raise_errors, true
+  set :dump_errors, true
 end
 
 def sql_connect(host, username = "root", password = "", database = "", port = 3306)
@@ -47,12 +51,14 @@ def database_redir(location)
 end
 
 
-after  do
+before do
   # TODO: Error notifications persist too long
   next unless request.post?
   $db_error = nil
 end
 
+
+## Connection
 get '/?' do
 	erb :index
 end
@@ -74,6 +80,7 @@ post '/disconnect' do
 end
 
 
+## Databases
 get '/databases' do
 	connection_redir '/'
  
@@ -110,6 +117,7 @@ post '/database' do
 end
 
 
+## Selected Database - All Tables
 get '/tables' do
 	connection_redir '/'
   database_redir '/databases'  
@@ -133,9 +141,10 @@ post '/tables' do
 	redirect '/tables'
 end
 
+
+## Selected Database - Specific Table 
 post '/table' do
   if params[:action] == "create"
-    # TODO
     begin
       $sql_conn.query "CREATE TABLE #{$db_name}.#{params[:new_table]}"
     rescue Mysql::Error => e
@@ -154,25 +163,44 @@ post '/table' do
 end
 
 post '/table/query' do
-  if params[:action] == "insert"
+  if params[:query_action] == "insert"
     begin
-      $sql_conn.query "INSERT INTO #{$db_name}.#{$table_name} #{params[:add_row]}"
+      $sql_conn.query "INSERT INTO #{$db_name}.#{$table_name} #{params[:set_params]}"
+      $full_table = $sql_conn.query "SELECT * FROM #{$db_name}.#{$table_name}"
     rescue Mysql::Error => e
-      $db_error = "Error inserting #{params[:add_row]} into #{$db_name} => #{e.errno} : #{e.error}"
+      $db_error = "Error inserting #{params[:set_params]} into #{$db_name} => #{e.errno} : #{e.error}"
+      $full_table = $sql_conn.query "SELECT * FROM #{$db_name}.#{$table_name}"
     end
-  elsif params[:action] == "delete"
+  elsif params[:query_action] == "delete"
     begin
-      $sql_conn.query "DELETE FROM #{$db_name}.#{$table_name} WHERE #{params[:delete_row]}"
+      $sql_conn.query "DELETE FROM #{$db_name}.#{$table_name} WHERE #{params[:query_params]}"
+      $full_table = $sql_conn.query "SELECT * FROM #{$db_name}.#{$table_name}"
     rescue Mysql::Error => e
-      $db_error = "Error removing #{params[:add_row]} from #{$db_name} => #{e.errno} : #{e.error}"
+      $db_error = "Error removing #{params[:query_params]} from #{$db_name} => #{e.errno} : #{e.error}"
+      $full_table = $sql_conn.query "SELECT * FROM #{$db_name}.#{$table_name}"
+    end
+  elsif params[:query_action] == "filter"
+    begin
+      $full_table = $sql_conn.query "SELECT * FROM #{$db_name}.#{$table_name} WHERE #{params[:query_params]}"
+    rescue Mysql::Error => e
+      $db_error = "Error filtering #{$table_name} by #{params[:query_params]} => #{e.errno} : #{e.error}"
+      $full_table = $sql_conn.query "SELECT * FROM #{$db_name}.#{$table_name}"
+    end
+  elsif params[:query_action] == "update"
+    begin
+      $full_table = $sql_conn.query "UPDATE #{$db_name}.#{$table_name} SET #{params[:set_params]} WHERE #{params[:query_params]}"
+    rescue Mysql::Error => e
+      $db_error = "Error setting #{params[:set_params]} to queries matching #{params[:query_params]} => #{e.errno} : #{e.error}"
+      $full_table = $sql_conn.query "SELECT * FROM #{$db_name}.#{$table_name}"
     end
   end
 
-  redirect '/tables'
+  erb :tables
+  #redirect '/tables'
 end
 
 
-
+## Manual Query
 get '/query' do
   connection_redir '/'
 
@@ -192,11 +220,23 @@ post '/query' do
 end
 
 
-#post 'csv' do
-#  CSV.generate do |csv|
-#    $sql_conn.query "SELECT * FROM #{$db_name}.#{$table_name}".each { |row|
-#      csv << row
-#    }
-#  end
-#end
+## Download database table as CSV
+post '/csv' do
+  unless [$db_name, $table_name, $full_table].include? nil
+    
+    csv_file = "#{$db_name}.#{$table_name}.csv"
+    headers = [] 
+    CSV.open(csv_file, "wb") do |csv|
+      
+      $full_table.num_fields.times do |i|
+        headers << $full_table.fetch_field_direct(i).name
+      end
+      csv << headers
+
+      $sql_conn.query("SELECT * FROM #{$db_name}.#{$table_name}").each { |row| csv << row }
+    end
+
+    send_file csv_file, :filename => csv_file, :type => :csv
+  end
+end
 

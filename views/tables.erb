@@ -10,9 +10,14 @@
 
   <title>Connect ~ Visual DB</title>
 
-  <!-- Bootstrap core CSS -->
-  <link href="css/bootstrap.min.css" rel="stylesheet">
-  <link href="css/starter-template.css" rel="stylesheet">
+  <!-- CSS -->
+  <link href="/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/starter-template.css" rel="stylesheet">
+  <link href="/css/main.css" rel="stylesheet">
+
+  <!-- Table Sorting -->
+  <script src="/js/sorttable.js"></script>
+
 </head>
 <body>
 
@@ -25,14 +30,16 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="about">Visual DB</a>
+        <a class="navbar-brand" href="/about">Visual DB</a>
       </div>
       <div class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
           <li><a href="/">Connect</a></li>
-          <li><a href="databases">Databases<% if $db_name %> :: <%= $db_name %><% end %></a></li>
-          <li class="active"><a href="tables">Tables<% if $table_name %> :: <%= $table_name %><% end %></a></li>
-          <li><a href="query">Query</a></li>
+          <li><a href="/databases">Databases<% if $db_name %> :: <%= $db_name %><% end %></a></li>
+          <li class="active">
+          <a href="/tables">Tables<% if $table_name %> :: <span style="color:green"><%= $table_name %></span><% end %></a>
+          </li>
+          <li><a href="/query">Query</a></li>
         </ul>
       </div><!--/.nav-collapse -->
     </div>
@@ -41,20 +48,18 @@
   <div class="container">
 
     <div class="starter-template">
-      <% if $table_name %>
-        <h2>Inspecting <span style="color:green"><%= $table_name %></span> from <span style="color:green"><%= $db_name %></span></h2>
-      <% else %>
-        <h2>Please select a Table from "<%= $db_name %>"</h2>
-      <% end %>
       <% if !$db_error.nil? %>
          <div style="color:red"><%= $db_error %></div>
       <% end %>
       
       <div style="margin-left:auto; margin-right:auto">
-        <div class="well" style="width:600px; margin-left:auto; margin-right:auto; margin-top:40px; margin-bottom:60px;" >
-          <div style="margin-top:0px; margin-bottom:10px;"><b>Number of Tables:</b> <%= $db_tables.length %></div>
+        <div class="well" style="width:600px; margin-left:auto; margin-right:auto; margin-top:20px; margin-bottom:0px;" >
+          
+          <h4 style="margin-top:10px;"> Database :: <span id="db_name" style="color:green"><%= $db_name %></span></h4>
+          <div style="margin-top:10px; margin-bottom:15px;">Tables : <%= $db_tables.length %></div>
           
           <!-- START SELECT TABLE -->
+          
             <form method="post" action="/tables" style="display:inline-block">
               <span style="display:inline-block">
               <select class="form-control" name="select_table" id="select_table" style="width:350px;">
@@ -79,7 +84,7 @@
             <input type="hidden" name="action" value="create">
             <div style="margin-top:10px; margin-left: auto; margin-right:auto">
               <span style="display:inline-block; margin-left:auto; margin-right:auto;">
-                <input class="form-control" name="new_table" value="" placeholder="CREATE TABLE <TABLE_NAME (FIELDS)>" style="width:350px; margin-left: auto; margin-right:auto">
+                <input class="form-control" name="new_table" value="" placeholder="Name (fields)" style="width:350px; margin-left: auto; margin-right:auto">
               </span>
               <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
                 <input class="btn btn-block" type="submit" value="Create New Table" style="margin-left:auto; margin-right:auto; width:150px">
@@ -95,11 +100,7 @@
               <span style="display:inline-block; margin-left:auto; margin-right:auto;">
                 <select class="form-control" name="table" id="table" style="width:350px;">
                   <% $db_tables.each do |table_name| %>
-                  <% if table_name == $table_name %>
-                  <option selected><%=table_name%></option>
-                  <% else %>
                   <option><%=table_name%></option>
-                  <% end %>
                   <% end %>
                 </select>
               </span>
@@ -109,54 +110,72 @@
             </div>
           </form>
           <% end %>
-
-          <!-- START INSERT INTO TABLE -->
-          <% if $table_name %>          
-            
-          <hr style="border-color:#CCC">
-
-          <form method="post" action="/table/query">
-            <ul style="list-style-type: none; padding:0">
-              <li style="margin:0"><b>Number of Rows:</b> <%= $full_table.num_rows %> </li>
-              <li><b>Number of Columns:</b> <%= $full_table.num_fields %> </li>
-              <li><b>Number of Cells:</b> <%= $full_table.num_rows * $full_table.num_fields %> </li>
-            </ul>
-            <input type="hidden" name="action" value="insert">
-            <div style="margin-left: auto; margin-right:auto">
-              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
-                <input class="form-control" name="add_row" value="" placeholder="INSERT INTO <% if $db_name %><%= $table_name %><% end %> <(fields) VALUES (values)>" style="width:350px; margin-left: auto; margin-right:auto">
-              </span>
-              <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
-                <input class="btn btn-block btn-primary" type="submit" value="Insert Into Table" style="margin-left:auto; margin-right:auto; width:150px">
-              </span>
-            </div>
-          </form>
-          
-          <!-- START DELETE FROM TABLE -->
-          <form method="post" action="/table/query">
-            <input type="hidden" name="action" value="delete">
-            <div style="margin-top:10px; margin-left: auto; margin-right:auto">
-              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
-                <input class="form-control" name="delete_row" value="" placeholder="DELETE FROM <% if $db_name %><%= $table_name %><% end %> WHERE <CLAUSE>" style="width:350px; margin-left: auto; margin-right:auto">
-              </span>
-              <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
-                <input class="btn btn-block" type="submit" value="Remove from Table" style="margin-left:auto; margin-right:auto; width:150px">
-              </span>
-            </div>
-
-          </form>
-        <% end %>
         </div>
+
+          <!-- START FILTER FROM TABLE -->
+        <% if $table_name %>
+        <div class="well" style="width:600px; margin-left:auto; margin-right:auto; margin-top:10px; margin-bottom:0px;">  
+          
+          <% if $table_name %>
+            <h4>Table :: <span id="table_name" style="color:green"><%= $table_name %></span></h4>
+          <% end %>
+          
+          <div style="margin-top:10px; margin-bottom:25px;">
+            <span style="margin-left:10px; margin-right:10px;">Rows : <%= $full_table.num_rows %></span>
+            <span style="margin-left:10px; margin-right:10px;">Columns : <%= $full_table.num_fields %></span>
+            <span style="margin-left:10px; margin-right:10px;">Cells : <%= $full_table.num_rows * $full_table.num_fields %></span>
+          </div>
+
+          <!-- START FILTER FROM TABLE -->
+          <form method="post" action="/table/query">
+            
+            <div class="form-row">
+              <label class="form-label" style="display:inline-block; width:100px; text-align:right;">Action</label>
+              <select class="form-control" name="query_action" id="query_action" onchange="update_query()" style="width:350px;margin-left:40px; display:inline-block;">
+                <option value="filter">Filter</option>
+                <option value="insert">Insert</option>
+                <option value="update">Update</option>
+                <option value="delete">Delete</option>
+              </select>
+            </div>
+
+            <div class="form-row" id="set_params_container" style="display:none">
+              <label id="set_form_label" class="form-label" style="display:inline-block; width:100px; text-align:right;">Set Params</label>
+              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
+                <input class="form-control" name="set_params" id="set_params" value="" placeholder="field1=new-value1, field2=new-value2" style="width:350px; margin-left:40px">
+              </span>
+            </div>
+
+            <div class="form-row" id="params_container">
+              <label id="query_form_label" class="form-label" style="display:inline-block; width:100px; text-align:right;">Params</label>
+              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
+                <input class="form-control" name="query_params" id="query_params" value="" placeholder="SELECT * FROM TABLENAME WHERE <query>" style="width:350px; margin-left:40px">
+              </span>
+            </div>
+  
+            <div >
+              <span style="display:inline-block; margin-left:auto; margin-right:auto; width:100%; margin-top:10px; margin-bottom:10px">
+                <label class="form-control" word-wrap name="full_query" id="full_query" style="font-weight:400; width:100%; margin-left: auto; margin-right:auto; margin-top:20px; height:auto; margin-bottom:20px;border:none;background-color:none;">SELECT * FROM TABLE WHERE</label>
+              </span>
+              <div style="margin-left:auto; margin-right:auto; vertical-align:top;">
+                <input class="btn btn-block btn-primary" id="table_action_btn"; type="submit" value="Filter Table" style="margin-left:auto; margin-right:auto; width:200px">
+              </div>
+            </div>
+          </form>
+
+        </div>
+        <% end %>
         
         <!-- START TABLE DISPLAY -->
         <% if $full_table %>
         <div style="margin-top:35px; width:100%;">
           <div style="display:table; margin: 0 auto">
-            <table style="display:block; max-width:1000px; overflow:scroll;">
+            <table class="table table-striped sortable" data-sortable style="display:block; max-width:1000px; overflow:scroll;">
               <tr><!--HEADERS-->
                 <% $full_table.num_fields.times do |i| %>
-                <td style="border:1px solid #000; padding:10px; background-color:#555; color: #FFF">
+                <td style="color:#FFF; background-color:#333;">
                   <%= $full_table.fetch_field_direct(i).name %>
+                  <% if $full_table.fetch_field_direct(i).is_pri_key? %>*<% end %>
                 </td>
                 <% end %>
               </tr>
@@ -166,8 +185,8 @@
               <tr>
                 <% row_contents = $full_table.fetch_row %>
                 <% $full_table.num_fields.times do |i| %>
-                <td style="border:1px solid #000; padding:7px;">
-                  <%= row_contents[i] %>
+                <td >
+                  <%= row_contents[i] rescue "XYZ" %>
                 </td>
                 <% end %>
               </tr>
@@ -178,8 +197,75 @@
         <% end %>
         <!-- END TABLE DISPLAY -->
       </div>
+
+      
+      <!-- START CSV DOWNLOAD -->
+      <% if $full_table %>
+      <form method="post" action="csv">
+        <input class="btn btn-block" type="submit" value="Download Table as CSV" style="margin-left:auto; margin-right:auto; width:200px">
+      </form>
+      <% end %>
+      <!-- END CSV DOWNLOAD -->
+
     </div><!-- /.container -->
 
+  <script type="text/javascript">
+    
+    var query_params = document.getElementById("query_params");
+    
+    function update_query() {
+      var action          = document.getElementById("query_action").value;
+      var params_view     = document.getElementById("params_container");
+      var params          = document.getElementById("query_params");
+      var set_params_view = document.getElementById("set_params_container");
+      var set_params      = document.getElementById("set_params");
+      var table_name      = document.getElementById("table_name").innerHTML;
+      var db_name         = document.getElementById("db_name").innerHTML;
+      var db_table        = " " + db_name + "." + table_name + " ";
+      var full_query      = document.getElementById("full_query");
+      var field_label     = document.getElementById("query_form_label");
+      var query_btn       = document.getElementById("table_action_btn");
+      var clause          = "";
+      var setter          = "";
 
-  </body>
-  </html>
+      (action === "update" || action ==="insert" ? set_params_view.style.display = "" : set_params_view.style.display = "none");
+      (action === "insert" ? params_view.style.display = "none" : params_view.style.display = "");
+      
+      if (action === "insert") {
+        field_label.innerHTML = "Params";
+        params.placeholder    = "(field1, field2) VALUES (\"value1\", \"value2\")";
+        (params.value === "" ? clause = params.placeholder : clause = params.value);
+        full_query.innerHTML  = "INSERT INTO" + db_table + clause;
+      }
+      else if (action === "update") {
+        field_label.innerHTML = "Clause";
+        params.placeholder = "field1=\"value1\", field2=\"value2\"";
+        (params.value === "" ? clause = params.placeholder : clause = params.value);
+        (set_params.value === "" ? setter = set_params.placeholder : setter = set_params.value);
+        full_query.innerHTML = "UPDATE" + db_table + "SET " + setter + " WHERE " + clause;
+      } 
+      else if (action === "filter") {
+        field_label.innerHTML = "Clause";
+        params.placeholder =  "field1=\"value1\", field2=\"value2\"";
+        (params.value === "" ? clause = params.placeholder : clause = params.value);
+        full_query.innerHTML  = "SELECT * FROM" + db_table + "WHERE " + clause; 
+      }
+      else if (action === "delete") {
+        field_label.innerHTML = "Clause";
+        params.placeholder = "field1=\"value1\", field2=\"value2\"";
+        (params.value === "" ? clause = params.placeholder : clause = params.value);
+        full_query.innerHTML  = "DELETE FROM" + db_table + "WHERE " + clause;
+      }
+
+      query_btn.value = action.substring(0,1).toUpperCase() + action.substring(1);
+    };
+
+    document.getElementById("query_params").addEventListener("input", function(){
+        update_query();   
+    });
+
+    update_query();
+
+  </script>
+</body>
+</html>
