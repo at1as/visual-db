@@ -136,6 +136,8 @@
                 <option value="insert">Insert</option>
                 <option value="update">Update</option>
                 <option value="delete">Delete</option>
+                <option value="alter">Alter</option>
+                <option value="showcols">Show Columns</option>
               </select>
             </div>
 
@@ -166,8 +168,34 @@
         </div>
         <% end %>
         
+        <!-- START COLUMNS DISPLAY -->
+        
+        <% if $table_cols %>
+        <div style="display:table; margin: 0 auto">
+          <div style="margin-top:35px; width:100%;">
+            <table class="table table-striped sortable" data-sortable style="display:block; max-width:1000px; overflow:scroll;">
+              <tr><!--HEADERS-->
+              <% ["field", "type", "null", "key", "default", "extra"].each do |heading| %>
+                <td style="color:#FFF; background-color:#333;">
+                  <%= heading %>
+                </td>
+              <% end %>
+              </tr>
+              <!-- BODY -->
+              <% $table_cols.each do |row| %>
+                <tr>
+                  <% row.each do |cell| %>
+                    <td><%= cell rescue "ERR" %> </td>
+                  <% end %>
+                </tr>
+              <% end %>
+            </table>
+          </div>
+        </div>
+        <% end %>
+        
         <!-- START TABLE DISPLAY -->
-        <% if $full_table %>
+        <% if $full_table && $table_cols.nil? %>
         <div style="margin-top:35px; width:100%;">
           <div style="display:table; margin: 0 auto">
             <table class="table table-striped sortable" data-sortable style="display:block; max-width:1000px; overflow:scroll;">
@@ -186,7 +214,7 @@
                 <% row_contents = $full_table.fetch_row %>
                 <% $full_table.num_fields.times do |i| %>
                 <td >
-                  <%= row_contents[i] rescue "XYZ" %>
+                  <%= row_contents[i] rescue "ERR" %>
                 </td>
                 <% end %>
               </tr>
@@ -200,8 +228,8 @@
 
       
       <!-- START CSV DOWNLOAD -->
-      <% if $full_table %>
-      <form method="post" action="csv">
+      <% if $full_table && $table_cols.nil? %>
+      <form method="post" action="/csv">
         <input class="btn btn-block" type="submit" value="Download Table as CSV" style="margin-left:auto; margin-right:auto; width:200px">
       </form>
       <% end %>
@@ -228,41 +256,52 @@
       var clause          = "";
       var setter          = "";
 
-      (action === "update" || action ==="insert" ? set_params_view.style.display = "" : set_params_view.style.display = "none");
-      (action === "insert" ? params_view.style.display = "none" : params_view.style.display = "");
+      (action === "update" || action ==="insert" || action ==="alter" || action ==="showcols" ? set_params_view.style.display = "" : set_params_view.style.display = "none");
+      (action === "insert" || action ==="alter" ? params_view.style.display = "none" : params_view.style.display = "");
       
       if (action === "insert") {
         field_label.innerHTML = "Params";
-        params.placeholder    = "(field1, field2) VALUES (\"value1\", \"value2\")";
-        (params.value === "" ? clause = params.placeholder : clause = params.value);
+        set_params.placeholder    = "(field1, field2) VALUES (\"value1\", \"value2\")";
+        (params.value === "" ? clause = set_params.placeholder : clause = set_params.value);
         full_query.innerHTML  = "INSERT INTO" + db_table + clause;
       }
       else if (action === "update") {
         field_label.innerHTML = "Clause";
-        params.placeholder = "field1=\"value1\", field2=\"value2\"";
+        params.placeholder = "(field1, field2)=(\"value1\", \"value2\")";
         (params.value === "" ? clause = params.placeholder : clause = params.value);
         (set_params.value === "" ? setter = set_params.placeholder : setter = set_params.value);
         full_query.innerHTML = "UPDATE" + db_table + "SET " + setter + " WHERE " + clause;
       } 
       else if (action === "filter") {
         field_label.innerHTML = "Clause";
-        params.placeholder =  "field1=\"value1\", field2=\"value2\"";
+        params.placeholder =  "(field1, field2)=(\"value1\", \"value2\")";
         (params.value === "" ? clause = params.placeholder : clause = params.value);
-        full_query.innerHTML  = "SELECT * FROM" + db_table + "WHERE " + clause; 
+        full_query.innerHTML = "SELECT * FROM" + db_table + "WHERE " + clause; 
       }
       else if (action === "delete") {
         field_label.innerHTML = "Clause";
-        params.placeholder = "field1=\"value1\", field2=\"value2\"";
+        params.placeholder = "(field1, field2)=(\"value1\", \"value2\")";
         (params.value === "" ? clause = params.placeholder : clause = params.value);
-        full_query.innerHTML  = "DELETE FROM" + db_table + "WHERE " + clause;
+        full_query.innerHTML = "DELETE FROM" + db_table + "WHERE " + clause;
       }
-
+      else if (action === "alter") {
+        field_label.innerHTML = "Command";
+        set_params.placeholder = "action column args";
+        (params.value === "" ? clause = set_params.placeholder : clause = set_params.value);
+        full_query.innerHTML = "ALTER TABLE" + db_table + clause;
+      }
+      else if (action === "showcols") {
+        full_query.innerHTML = "SHOW COLUMNS FROM" + db_table;
+      }
+      
       query_btn.value = action.substring(0,1).toUpperCase() + action.substring(1);
     };
 
-    document.getElementById("query_params").addEventListener("input", function(){
-        update_query();   
-    });
+    if (document.getElementById("query_params")) {
+      document.getElementById("query_params").addEventListener("input", function(){
+          update_query();   
+      });
+    }
 
     update_query();
 

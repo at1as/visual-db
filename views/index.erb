@@ -47,6 +47,9 @@
         <% else %>
           <h3>Please enter your MySQL credentials</h3>
         <% end %>
+        <% if $db_error %>
+          <span style="color:red"><%= $db_error %></span>
+        <% end %>
         <div class="well" style="width:350px; margin-left:auto; margin-right:auto; margin-top:40px">
           <form method="post" action="/connect">
             <b>Host</b>
@@ -54,7 +57,7 @@
             <b>Port</b>
             <input class="form-control" name="port" id="port" value="3306" >
             <b>Username</b>
-            <input class="form-control" name="username" id="username" value="root" autofocus />
+            <input class="form-control" name="username" id="username" value="root" autofocus >
             <b>Password</b>
             <input class="form-control" name="password" id="password" placeholder="" >
             <% if !$sql_conn %>
