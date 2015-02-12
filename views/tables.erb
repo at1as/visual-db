@@ -37,7 +37,7 @@
           <li><a href="/">Connect</a></li>
           <li><a href="/databases">Databases<% if $db_name %> :: <%= $db_name %><% end %></a></li>
           <li class="active">
-          <a href="/tables">Tables<% if $table_name %> :: <span style="color:green"><%= $table_name %></span><% end %></a>
+          <a href="/tables">Tables<% if $table_name %> :: <span class="head_active"><%= $table_name %></span><% end %></a>
           </li>
           <li><a href="/query">Query</a></li>
         </ul>
@@ -49,9 +49,11 @@
 
     <div class="starter-template">
       <% if !$db_error.nil? %>
-         <div style="color:red"><%= $db_error %></div>
+         <div class="db_err"><%= $db_error %></div>
       <% end %>
-      
+      <% if !$db_success.nil? %>
+        <div style="color:green"><%= $db_success %></div>
+      <% end %>
       <div style="margin-left:auto; margin-right:auto">
         <div class="well" style="width:600px; margin-left:auto; margin-right:auto; margin-top:20px; margin-bottom:0px;" >
           
@@ -120,7 +122,7 @@
             <h4>Table :: <span id="table_name" style="color:green"><%= $table_name %></span></h4>
           <% end %>
           
-          <div style="margin-top:10px; margin-bottom:25px;">
+          <div style="margin-top:10px; margin-bottom:15px;">
             <span style="margin-left:10px; margin-right:10px;">Rows : <%= $full_table.num_rows %></span>
             <span style="margin-left:10px; margin-right:10px;">Columns : <%= $full_table.num_fields %></span>
             <span style="margin-left:10px; margin-right:10px;">Cells : <%= $full_table.num_rows * $full_table.num_fields %></span>
@@ -172,7 +174,7 @@
         
         <% if $table_cols %>
         <div style="display:table; margin: 0 auto">
-          <div style="margin-top:35px; width:100%;">
+          <div style="margin-top:50px; width:100%;">
             <table class="table table-striped sortable" data-sortable style="display:block; max-width:1000px; overflow:scroll;">
               <tr><!--HEADERS-->
               <% ["field", "type", "null", "key", "default", "extra"].each do |heading| %>
@@ -196,7 +198,7 @@
         
         <!-- START TABLE DISPLAY -->
         <% if $full_table && $table_cols.nil? %>
-        <div style="margin-top:35px; width:100%;">
+        <div style="margin-top:50px; width:100%;">
           <div style="display:table; margin: 0 auto">
             <table class="table table-striped sortable" data-sortable style="display:block; max-width:1000px; overflow:scroll;">
               <tr><!--HEADERS-->
@@ -230,7 +232,9 @@
       <!-- START CSV DOWNLOAD -->
       <% if $full_table && $table_cols.nil? %>
       <form method="post" action="/csv">
-        <input class="btn btn-block" type="submit" value="Download Table as CSV" style="margin-left:auto; margin-right:auto; width:200px">
+        <div class="well" style="margin-left:auto; margin-right:auto; width:550px; margin-top:40px;">
+          <input class="btn btn-block" type="submit" value="Download Table as CSV" style="margin-left:auto; margin-right:auto; width:200px">
+        </div>
       </form>
       <% end %>
       <!-- END CSV DOWNLOAD -->
@@ -256,8 +260,8 @@
       var clause          = "";
       var setter          = "";
 
-      (action === "update" || action ==="insert" || action ==="alter" || action ==="showcols" ? set_params_view.style.display = "" : set_params_view.style.display = "none");
-      (action === "insert" || action ==="alter" ? params_view.style.display = "none" : params_view.style.display = "");
+      (action === "update" || action ==="insert" || action ==="alter" ? set_params_view.style.display = "" : set_params_view.style.display = "none");
+      (action === "insert" || action ==="alter" || action==="showcols" ? params_view.style.display = "none" : params_view.style.display = "");
       
       if (action === "insert") {
         field_label.innerHTML = "Params";

@@ -52,6 +52,9 @@
         <% if !$db_error.nil? %>
           <div style="color:red"><%= $db_error %></div>
         <% end %>
+        <% if !$db_success.nil? %>
+          <div style="color:green"><%= $db_success %></div>
+        <% end %>
         <div style="width:350px; margin-left:auto; margin-right:auto">
 
 

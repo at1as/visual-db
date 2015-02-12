@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+#encoding: utf-8
 
 require 'sinatra'
 require 'mysql'
@@ -7,110 +8,133 @@ require 'csv'
 helpers do
 	include Rack::Utils
 	alias_method :h, :escape_html
+
+  def sql_connect(host, username = "root", password = "", database = "", port = 3306)
+    begin
+      $sql_conn = Mysql.init
+      $sql_conn.options(Mysql::OPT_CONNECT_TIMEOUT, 4)
+      $sql_conn.real_connect(host, username, password, database, port)
+      redirect "/databases"
+    rescue Mysql::Error => e
+      $sql_conn = false
+      error_logger("Error connecting to MySQL as #{username} at #{host}:#{port}", e)
+      redirect "/?error=true"
+    end
+  end
+
+  def sql_close
+    $sql_conn.close
+    $sql_conn = $db_list = $db_name = $db_tables = $table_name = false
+  end
+
+  def connection_redir(location)
+    if !$sql_conn
+      error_logger("Connect to a MySQL instance before configuring databases")
+      redirect "#{location}?error=true"
+    end
+  end
+
+  def database_redir(location)
+    if !$db_name
+      error_logger("Select a Database before configuring tables")
+      redirect "#{location}?error=true"
+    end
+  end
+
+  def result_redirect(result, path)
+    if result == "success"
+      redirect "#{path}"
+    else
+      redirect "#{path}?error=true"
+    end
+  end
+
+  def query(full_query, failure_message, update_on_success = false, update_on_fail = false)
+    begin 
+      data = $sql_conn.query full_query
+      set_table($db_name, $table_name) if update_on_success
+      $db_success = $sql_conn.rows_affected
+      return "success", data
+    rescue Mysql::Error => e
+      error_logger(failure_message, e)
+      set_table($db_name, $table_name) if update_on_fail
+      return "error", nil
+    end
+  end
+  
+  def get_table
+    "#{$db_name}.#{$table_name}"
+  end
+
+  def set_table(db, table)
+    begin
+      $full_table = $sql_conn.query "SELECT * FROM #{db}.#{table}"
+    rescue
+      $full_table = $sql_conn.query "SELECT * FROM #{get_table}"
+    end
+  end
+
+  def error_logger(message, exception = nil)
+    $db_error = "#{message} #{'=> ' + exception.errno.to_s + ' : ' + exception.error unless exception.nil?}"
+  end
 end
 
+
 configure do
-	$sql_conn   = false			# The my SQL connection object
-	$db_list    = false			# List of available Databases
-	$db_name    = false			# Name of currently selected Database
-	$db_tables  = false		  # List of Tables for currently selected Database
-	$table_name = false		  # Name of currently selected Table
+	$sql_conn   = false     # The my SQL connection object
+	$db_list    = false     # List of available Databases
+	$db_name    = false     # Name of currently selected Database
+	$db_tables  = false     # List of Tables for currently selected Database
+	$table_name = false     # Name of currently selected Table
   $table_cols = nil       # Table Column information
   $db_error   = nil       # To propagate error/success from SQL queries
+  $db_success = nil       # SQL Rows Affected response
 
+  NO_AUTH_PATHS = ["/", "/connect", "/disconnect", "/about"]
+
+  set :bind, '0.0.0.0'
   set :show_exceptions, true
   set :raise_errors, true
   set :dump_errors, true
 end
 
-def sql_connect(host, username = "root", password = "", database = "", port = 3306)
-	begin
-    $sql_conn = Mysql.init
-    $sql_conn.options(Mysql::OPT_CONNECT_TIMEOUT, 5)
-		$sql_conn.real_connect(host, username, password, database, port)
-    redirect '/databases'
-	rescue Mysql::Error => e
-		$sql_conn = false
-		error_logger("Error connecting to MySQL at #{host}:#{port}", e)
-	end
-end
-
-def sql_close
-	$sql_conn.close
-	$sql_conn = $db_list = $db_name = $db_tables = $table_name = false
-end
-
-def connection_redir(location)
-  if !$sql_conn
-    $db_error = "Connect to a MySQL instance before configuring databases"
-    redirect "#{location}"
-  end
-end
-
-def database_redir(location)
-  if !$db_name
-    $db_error = "Select a Database before configuring tables"
-    redirect "#{location}"
-  end
-end
-
-def get_table
-  "#{$db_name}.#{$table_name}"
-end
-
-def set_table(db, table)
-  begin
-    $full_table = $sql_conn.query "SELECT * FROM #{db}.#{table}"
-  rescue
-    $full_table = $sql_conn.query "SELECT * FROM #{get_table}"
-  end
-end
-
-def error_logger(message, exception)
-  $db_error = "#{message} => #{exception.errno} : #{exception.error}"
-end
-
 
 ## Filters
 before do
-  connection_redir '/' unless ['/', '/connect', '/disconnect'].include? request.path_info
-  $db_error = nil if request.post?
+  connection_redir '/' unless NO_AUTH_PATHS.include? request.path_info
+  $db_error   = nil if not params[:error]
+  #$db_success = nil if not params[:success]
+  $table_cols = nil unless params[:query_action] == "showcols"
 end
 
 after do
-  # TODO: Error notifications persist too long
-  #next unless request.post?
-  $table_cols = nil
-  #next unless request.get?
-  #$db_error = nil
+  $table_cols = nil unless params[:query_action] == "showcols"
 end
 
 
 ## Connection
 get '/?' do
-	erb :index
-end
-
-get '/about' do
-	erb :about
+  erb :index
 end
 
 post '/connect' do
-	port = Integer(params[:port]) rescue nil
-	sql_connect(params[:hostname], params[:username], nil, params[:password], port)
-
-	redirect '/'
+  port = Integer(params[:port]) rescue nil
+  sql_connect(params[:hostname], params[:username], nil, params[:password], port)
 end
 
 post '/disconnect' do
-	sql_close
-	redirect '/'
+  sql_close
+  redirect '/'
+end
+
+get '/about' do
+  erb :about
 end
 
 
 ## Databases
 get '/databases' do
- 
+
   show_dbs = $sql_conn.query "SHOW DATABASES"
   $db_list = []
   show_dbs.each { |db| $db_list += db }
@@ -125,22 +149,17 @@ post '/databases' do
 end
 
 post '/database' do
-	if params[:action] == "create"
-		begin 
-			$sql_conn.query "CREATE DATABASE #{params[:database]}"
-		rescue Mysql::Error => e
-			$db_error = "Error creating #{params[:database]} => #{e.errno} : #{e.error}"
-		end
-	elsif params[:action] == "delete"
-		begin
-			$sql_conn.query "DROP DATABASE IF EXISTS #{params[:database]}"
-		rescue Mysql::Error => e
-			$db_error = "Error deleting #{params[:database]} => #{e.errno} : #{e.error}"
-    end
-    if params[:database] == $db_name then $db_name = nil end
-	end
-	
-  redirect '/databases'
+
+  if params[:action] == "create"
+    result, _ = query(  "CREATE DATABASE #{params[:database]}", 
+                        "Error creating \"#{params[:database]}\"" )
+  elsif params[:action] == "delete"
+    result, _ = query(  "DROP DATABASE IF EXISTS #{params[:database]}", 
+                        "Error deleting \"#{params[:database]}\"" )
+    $db_name = nil if params[:database] == $db_name
+  end
+  
+  result_redirect(result, "/databases")
 end
 
 
@@ -150,14 +169,9 @@ get '/tables' do
 		
   db_tables = $sql_conn.query "SHOW TABLES from #{$db_name}"
   $db_tables = []
-  #db_tables.each { |table| $db_tables += table }
-  db_tables.each do |table|
-    $db_tables += table
-  end
+  db_tables.each { |table| $db_tables += table }
 
-  if $table_name
-    set_table($db_name, $table_name)
-  end
+  set_table($db_name, $table_name) if $table_name
 
   erb :tables
 end
@@ -172,77 +186,55 @@ end
 ## Selected Database - Specific Table Actions
 post '/table' do
   if params[:action] == "create"
-    begin
-      $sql_conn.query "CREATE TABLE #{$db_name}.#{params[:new_table]}"
-    rescue Mysql::Error => e
-      $db_error = "Error creating table #{params[:new_table]} => #{e.errno} : #{e.error}"
-    end
-  elsif params[:action] == "delete"
-    begin
-      $sql_conn.query "DROP TABLE IF EXISTS #{$db_name}.#{params[:table]}"
-    rescue Mysql::Error => e
-      $db_error = "Error dropping table #{params[:table]} from database #{$db_name} => #{e.errno} : #{e.error}"
-    end
-    if params[:table] == $table_name then $table_name =  nil end
-  end
+    result, _ = query(  "CREATE TABLE #{$db_name}.#{params[:new_table]}",
+                        "Error creating table \"#{params[:new_table]}\"" )
   
-  redirect '/tables'
+  elsif params[:action] == "delete"
+    result, _ = query(  "DROP TABLE IF EXISTS #{$db_name}.#{params[:table]}",
+                        "Error dropping table \"#{$db_name}.#{params[:table]}\"" )
+    $table_name = nil if params[:table] == $table_name
+  end
+
+  result_redirect(result, "/tables")
 end
 
 post '/table/query' do
 
   if params[:query_action] == "insert"
-    begin
-      $sql_conn.query "INSERT INTO #{get_table} #{params[:set_params]}"
-    rescue Mysql::Error => e
-      error_logger("Error inserting #{params[:set_params]} into #{$db_name}", e)
-    ensure
-      set_table($db_name, $table_name)
-    end
+
+    query(  "INSERT INTO #{get_table} #{params[:set_params]}", 
+            "Error inserting \"#{params[:set_params]}\" into #{$db_name}",
+            true, true )
   
   elsif params[:query_action] == "delete"
-    begin
-      $sql_conn.query "DELETE FROM #{get_table} WHERE #{params[:query_params]}"
-    rescue Mysql::Error => e
-      error_logger("Error removing #{params[:query_params]} from #{$db_name}", e)
-    ensure
-      set_table($db_name, $table_name)
-    end
-  
+    
+    query(  "DELETE FROM #{get_table} WHERE #{params[:query_params]}", 
+            "Error removing \"#{params[:query_params]}\" from #{$db_name}",
+            true, true )
+
   elsif params[:query_action] == "filter"
-    begin
-      $full_table = $sql_conn.query "SELECT * FROM #{get_table} WHERE #{params[:query_params]}"
-    rescue Mysql::Error => e
-      error_logger("Error filtering #{$table_name} by #{params[:query_params]}", e)
-      set_table($db_name, $table_name)
-    end
-  
+ 
+    result, data = query( "SELECT * FROM #{get_table} WHERE #{params[:query_params]}",
+                          "Error filtering #{$table_name} by \"#{params[:query_params]}\"",
+                          false, true )
+    $full_table = data if result == "success"
+
   elsif params[:query_action] == "update"
-    begin
-      $sql_conn.query "UPDATE #{get_table} SET #{params[:set_params]} WHERE #{params[:query_params]}"
-    rescue Mysql::Error => e
-      error_logger("Error setting #{params[:set_params]} to queries matching #{params[:query_params]}", e)
-    ensure
-      set_table($db_name, $table_name)
-    end
   
+    query(  "UPDATE #{get_table} SET #{params[:set_params]} WHERE #{params[:query_params]}", 
+            "Error setting \"#{params[:set_params]}\" to queries matching \"#{params[:query_params]}\"",
+            true, true )
+
   elsif params[:query_action] == "alter"
-    begin
-      $sql_conn.query "ALTER TABLE #{get_table} #{params[:set_params]}" 
-    rescue Mysql::Error => e
-      error_logger("Error setting #{params[:set_params]}", e)
-    ensure
-      set_table($db_name, $table_name)
-    end
   
+    query(  "ALTER TABLE #{get_table} #{params[:set_params]}", 
+            "Error setting \"#{params[:set_params]}\"",
+            true, true )
+
   elsif params[:query_action] == "showcols"
-    begin
-      $table_cols = $sql_conn.query "SHOW COLUMNS FROM #{get_table}"
-    rescue Mysql::Error => e
-      error_logger("Error showing columns", e)
-    ensure
-      set_table($db_name, $table_name)
-    end
+  
+    _, $table_cols = query( "SHOW COLUMNS FROM #{get_table}", 
+                            "Error showing columns" )
   end
 
   erb :tables
@@ -255,13 +247,9 @@ get '/query' do
 end
 
 post '/query' do
-  begin
-    $sql_conn.query "#{params[:query]}"
-  rescue Mysql::Error => e
-    error_logger("Query \"#{params[:query]}\" resulted in error", e)
-  end
+  result, _ = query("#{params[:query]}", "Query \"#{params[:query]}\" resulted in error")
 
-  erb :query
+  result_redirect(result, "/query")
 end
 
 
@@ -269,7 +257,7 @@ end
 post '/csv' do
   unless [$db_name, $table_name, $full_table].include? nil
     
-    csv_file = "#{$db_name}.#{$table_name}.csv"
+    csv_file = "#{get_table}.csv"
     headers = [] 
     CSV.open(csv_file, "wb") do |csv|
       
@@ -278,7 +266,7 @@ post '/csv' do
       end
       csv << headers
 
-      $sql_conn.query("SELECT * FROM #{$db_name}.#{$table_name}").each { |row| csv << row }
+      $sql_conn.query("SELECT * FROM #{get_table}").each { |row| csv << row }
     end
 
     send_file csv_file, :filename => csv_file, :type => :csv
