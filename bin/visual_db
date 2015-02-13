@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require File.expand_path('../../lib/visual_db.rb', __FILE__)
+require 'vegas'
+
+Vegas::Runner.new(Sinatra::Application, 'visual_db')
