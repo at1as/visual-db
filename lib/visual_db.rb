@@ -96,6 +96,7 @@ configure do
   $db_error   = nil       # To propagate error/success from SQL queries
   $db_success = nil       # SQL Rows Affected response
 
+  API_VERSION   = "1.0"
   NO_AUTH_PATHS = ["/", "/connect", "/disconnect", "/about"]
 
   set :bind, '0.0.0.0'
@@ -105,7 +106,7 @@ configure do
 end
 
 
-## Filters
+## General Filters
 before do
   connection_redir '/' unless NO_AUTH_PATHS.include? request.path_info
   $db_error   = nil unless params[:error]
@@ -274,6 +275,30 @@ post '/csv' do
 
     send_file csv_file, :filename => csv_file, :type => :csv
   end
+end
+
+
+## Environment
+get '/env' do
+  <<-ENDRESPONSE
+    MySQL:    v#{$sql_conn.get_server_info rescue "?"} <br>
+    Rack:     #{Rack::VERSION rescue "?"} <br/>
+    Sinatra:  #{Sinatra::VERSION rescue "?"} <br/>
+    API:      v#{API_VERSION rescue "?"} <br/>
+    Gem:      v#{VisualDb::VERSION rescue "?"}
+  ENDRESPONSE
+end
+
+
+## Kills process (work around for Vegas Gem not catching SIGINT)
+get '/quit' do
+  sql_close
+  redirect to('/'), 200
+end
+
+after '/quit' do
+  puts "\nExiting..."
+  exit!
 end
 
 
