@@ -6,8 +6,8 @@ require 'mysql'
 require 'csv'
 
 helpers do
-	include Rack::Utils
-	alias_method :h, :escape_html
+  include Rack::Utils
+  alias_method :h, :escape_html
 
   def sql_connect(host, username = "root", password = "", database = "", port = 3306)
     begin
@@ -43,7 +43,7 @@ helpers do
 
   def result_redirect(result, path)
     if result == "success"
-      redirect "#{path}"
+      redirect "#{path}?success=true"
     else
       redirect "#{path}?error=true"
     end
@@ -52,8 +52,8 @@ helpers do
   def query(full_query, failure_message, update_on_success = false, update_on_fail = false)
     begin 
       data = $sql_conn.query full_query
-      set_table($db_name, $table_name) if update_on_success
-      $db_success = $sql_conn.rows_affected
+      $db_success = $sql_conn.affected_rows
+      $full_table = data if update_on_success
       return "success", data
     rescue Mysql::Error => e
       error_logger(failure_message, e)
@@ -81,11 +81,13 @@ end
 
 
 configure do
-	$sql_conn   = false     # The my SQL connection object
-	$db_list    = false     # List of available Databases
-	$db_name    = false     # Name of currently selected Database
-	$db_tables  = false     # List of Tables for currently selected Database
-	$table_name = false     # Name of currently selected Table
+  # TODO: Remove old .csv files
+  
+  $sql_conn   = false     # The my SQL connection object
+  $db_list    = false     # List of available Databases
+  $db_name    = false     # Name of currently selected Database
+  $db_tables  = false     # List of Tables for currently selected Database
+  $table_name = false     # Name of currently selected Table
   $table_cols = nil       # Table Column information
   $db_error   = nil       # To propagate error/success from SQL queries
   $db_success = nil       # SQL Rows Affected response
@@ -102,8 +104,8 @@ end
 ## Filters
 before do
   connection_redir '/' unless NO_AUTH_PATHS.include? request.path_info
-  $db_error   = nil if not params[:error]
-  #$db_success = nil if not params[:success]
+  $db_error   = nil unless params[:error]
+  $db_success = nil unless params[:success]
   $table_cols = nil unless params[:query_action] == "showcols"
 end
 
@@ -143,19 +145,20 @@ get '/databases' do
 end
 
 post '/databases' do
-	$db_name = params[:select_database]
-	$db_tables, $table_name, $full_table = false, false, false
-	redirect '/tables'
+  $db_name = params[:select_database]
+  $db_tables, $table_name, $full_table = false, false, false
+  redirect '/tables'
 end
 
 post '/database' do
 
   if params[:action] == "create"
     result, _ = query(  "CREATE DATABASE #{params[:database]}", 
-                        "Error creating \"#{params[:database]}\"" )
+                          "Error creating \"#{params[:database]}\"" )
+  
   elsif params[:action] == "delete"
     result, _ = query(  "DROP DATABASE IF EXISTS #{params[:database]}", 
-                        "Error deleting \"#{params[:database]}\"" )
+                          "Error deleting \"#{params[:database]}\"" )
     $db_name = nil if params[:database] == $db_name
   end
   
@@ -177,9 +180,9 @@ get '/tables' do
 end
 
 post '/tables' do
-	$table_name = params[:select_table]
+  $table_name = params[:select_table]
 
-	redirect '/tables'
+  redirect '/tables'
 end
 
 
@@ -187,11 +190,11 @@ end
 post '/table' do
   if params[:action] == "create"
     result, _ = query(  "CREATE TABLE #{$db_name}.#{params[:new_table]}",
-                        "Error creating table \"#{params[:new_table]}\"" )
+                          "Error creating table \"#{params[:new_table]}\"" )
   
   elsif params[:action] == "delete"
     result, _ = query(  "DROP TABLE IF EXISTS #{$db_name}.#{params[:table]}",
-                        "Error dropping table \"#{$db_name}.#{params[:table]}\"" )
+                          "Error dropping table \"#{$db_name}.#{params[:table]}\"" )
     $table_name = nil if params[:table] == $table_name
   end
 
@@ -199,42 +202,38 @@ post '/table' do
 end
 
 post '/table/query' do
+  if params[:query_action] == "filter"
+ 
+    query(  "SELECT * FROM #{get_table} WHERE #{params[:query_params]}",
+              "Error filtering #{$table_name} by \"#{params[:query_params]}\"",
+                true, true )
 
-  if params[:query_action] == "insert"
+  elsif params[:query_action] == "insert"
 
     query(  "INSERT INTO #{get_table} #{params[:set_params]}", 
-            "Error inserting \"#{params[:set_params]}\" into #{$db_name}",
-            true, true )
+              "Error inserting \"#{params[:set_params]}\" into #{$db_name}",
+                true, true )
   
   elsif params[:query_action] == "delete"
     
     query(  "DELETE FROM #{get_table} WHERE #{params[:query_params]}", 
-            "Error removing \"#{params[:query_params]}\" from #{$db_name}",
-            true, true )
-
-  elsif params[:query_action] == "filter"
- 
-    result, data = query( "SELECT * FROM #{get_table} WHERE #{params[:query_params]}",
-                          "Error filtering #{$table_name} by \"#{params[:query_params]}\"",
-                          false, true )
-    $full_table = data if result == "success"
+              "Error removing \"#{params[:query_params]}\" from #{$db_name}",
+                true, true )
 
   elsif params[:query_action] == "update"
   
     query(  "UPDATE #{get_table} SET #{params[:set_params]} WHERE #{params[:query_params]}", 
-            "Error setting \"#{params[:set_params]}\" to queries matching \"#{params[:query_params]}\"",
-            true, true )
+              "Error setting \"#{params[:set_params]}\" to queries matching \"#{params[:query_params]}\"",
+                true, true )
 
   elsif params[:query_action] == "alter"
   
     query(  "ALTER TABLE #{get_table} #{params[:set_params]}", 
-            "Error setting \"#{params[:set_params]}\"",
-            true, true )
+              "Error setting \"#{params[:set_params]}\"",
+                true, true )
 
   elsif params[:query_action] == "showcols"
-  
-    _, $table_cols = query( "SHOW COLUMNS FROM #{get_table}", 
-                            "Error showing columns" )
+    _, $table_cols = query( "SHOW COLUMNS FROM #{get_table}", "Error showing columns" )
   end
 
   erb :tables

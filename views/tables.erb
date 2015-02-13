@@ -4,20 +4,15 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="">
-  <meta name="author" content="">
   <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
 
   <title>Connect ~ Visual DB</title>
-
-  <!-- CSS -->
   <link href="/css/bootstrap.min.css" rel="stylesheet">
   <link href="/css/starter-template.css" rel="stylesheet">
   <link href="/css/main.css" rel="stylesheet">
 
   <!-- Table Sorting -->
   <script src="/js/sorttable.js"></script>
-
 </head>
 <body>
 
@@ -34,37 +29,43 @@
       </div>
       <div class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
-          <li><a href="/">Connect</a></li>
-          <li><a href="/databases">Databases<% if $db_name %> :: <%= $db_name %><% end %></a></li>
-          <li class="active">
-          <a href="/tables">Tables<% if $table_name %> :: <span class="head_active"><%= $table_name %></span><% end %></a>
+          <li>
+            <a href="/">Connect</a>
           </li>
-          <li><a href="/query">Query</a></li>
+          <li>
+            <a href="/databases">Databases<% if $db_name %> :: <%= $db_name %><% end %></a>
+          </li>
+          <li class="active">
+            <a href="/tables">Tables<% if $table_name %> :: <span class="head_active"><%= $table_name %></span><% end %></a>
+          </li>
+          <li>
+            <a href="/query">Query</a>
+          </li>
         </ul>
       </div><!--/.nav-collapse -->
     </div>
   </div>
 
   <div class="container">
-
     <div class="starter-template">
-      <% if !$db_error.nil? %>
+      <% unless $db_error.nil? %>
          <div class="db_err"><%= $db_error %></div>
       <% end %>
-      <% if !$db_success.nil? %>
-        <div style="color:green"><%= $db_success %></div>
+      <% unless $db_success.nil? %>
+        <div class="db_update">Query OK: <%= $db_success %> Rows Affected</div>
       <% end %>
+
       <div style="margin-left:auto; margin-right:auto">
-        <div class="well" style="width:600px; margin-left:auto; margin-right:auto; margin-top:20px; margin-bottom:0px;" >
+        <div class="well table_well">
           
-          <h4 style="margin-top:10px;"> Database :: <span id="db_name" style="color:green"><%= $db_name %></span></h4>
-          <div style="margin-top:10px; margin-bottom:15px;">Tables : <%= $db_tables.length %></div>
+          <h4>Database :: <span id="db_name" style="color:green"><%= $db_name %></span></h4>
+          <div class="tbl_info">Tables : <%= $db_tables.length %></div>
           
           <!-- START SELECT TABLE -->
-          
             <form method="post" action="/tables" style="display:inline-block">
               <span style="display:inline-block">
-              <select class="form-control" name="select_table" id="select_table" style="width:350px;">
+              <% if $db_tables.length > 0 %>
+                <select class="form-control inline_input" name="select_table" id="select_table">
                 <% $db_tables.each do |table_name| %>
                 <% if table_name == $table_name %>
                 <option selected><%=table_name%></option>
@@ -73,67 +74,64 @@
                 <% end %>
                 <% end %>
               </select>
+            <% end %>
             </span>
-            <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:bottom; margin-left:15px;">
+            <span class="inline_btn_container">
               <% if $db_tables.length > 0 %>
-              <input class="btn btn-block btn-primary" type="submit" value="Select Table" style="margin-left:auto; margin-right:auto; width:150px"/>
+              <input class="btn btn-block btn-primary inline_btn" type="submit" value="Select Table">
               <% end %>
             </span>
          </form>
 
           <!-- START CREATE TABLE -->
-          <form method="post" action="/table">
+          <form method="post" action="/table" style="margin-top:10px;">
             <input type="hidden" name="action" value="create">
-            <div style="margin-top:10px; margin-left: auto; margin-right:auto">
-              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
-                <input class="form-control" name="new_table" value="" placeholder="Name (fields)" style="width:350px; margin-left: auto; margin-right:auto">
-              </span>
-              <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
-                <input class="btn btn-block" type="submit" value="Create New Table" style="margin-left:auto; margin-right:auto; width:150px">
-              </span>
-            </div>
+            <span style="display:inline-block;">
+              <input class="form-control inline_input" name="new_table" value="" placeholder="Name (fields)">
+            </span>
+            <span class="inline_btn_container">
+              <input class="btn btn-block inline_btn" type="submit" value="Create New Table">
+            </span>
           </form>
 
           <!-- START DELETE TABLE -->
           <% if $db_tables.length > 0 %>
-          <form method="post" action="/table">
+          <form method="post" action="/table" style="margin-top:10px">
             <input type="hidden" name="action" value="delete">
-            <div style="margin-top:10px; margin-left: auto; margin-right:auto">
-              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
-                <select class="form-control" name="table" id="table" style="width:350px;">
-                  <% $db_tables.each do |table_name| %>
-                  <option><%=table_name%></option>
-                  <% end %>
-                </select>
-              </span>
-              <span style="display:inline-block; margin-left:auto; margin-right:auto; vertical-align:top; margin-left:15px">
-                <input class="btn btn-block" type="submit" value="Delete Table" style="margin-left:auto; margin-right:auto; width:150px">
-              </span>
-            </div>
+            <span style="display:inline-block">
+              <select class="form-control inline_input" name="table" id="table">
+                <% $db_tables.each do |table_name| %>
+                <option><%=table_name%></option>
+                <% end %>
+              </select>
+            </span>
+            <span class="inline_btn_container">
+              <input class="btn btn-block inline_btn" type="submit" value="Delete Table">
+            </span>
           </form>
           <% end %>
         </div>
 
           <!-- START FILTER FROM TABLE -->
         <% if $table_name %>
-        <div class="well" style="width:600px; margin-left:auto; margin-right:auto; margin-top:10px; margin-bottom:0px;">  
+        <div class="well table_well">  
           
           <% if $table_name %>
             <h4>Table :: <span id="table_name" style="color:green"><%= $table_name %></span></h4>
           <% end %>
           
-          <div style="margin-top:10px; margin-bottom:15px;">
-            <span style="margin-left:10px; margin-right:10px;">Rows : <%= $full_table.num_rows %></span>
-            <span style="margin-left:10px; margin-right:10px;">Columns : <%= $full_table.num_fields %></span>
-            <span style="margin-left:10px; margin-right:10px;">Cells : <%= $full_table.num_rows * $full_table.num_fields %></span>
+          <div class="tbl_info">
+            <span class="tbl_info_entry">Rows : <%= $full_table.num_rows %></span>
+            <span class="tbl_info_entry">Columns : <%= $full_table.num_fields %></span>
+            <span class="tbl_info_entry">Cells : <%= $full_table.num_rows * $full_table.num_fields %></span>
           </div>
 
           <!-- START FILTER FROM TABLE -->
           <form method="post" action="/table/query">
             
             <div class="form-row">
-              <label class="form-label" style="display:inline-block; width:100px; text-align:right;">Action</label>
-              <select class="form-control" name="query_action" id="query_action" onchange="update_query()" style="width:350px;margin-left:40px; display:inline-block;">
+              <label class="form-label tbl_form_label">Action</label>
+              <select class="form-control tbl_action_input" name="query_action" id="query_action" onchange="update_query()">
                 <option value="filter">Filter</option>
                 <option value="insert">Insert</option>
                 <option value="update">Update</option>
@@ -144,25 +142,25 @@
             </div>
 
             <div class="form-row" id="set_params_container" style="display:none">
-              <label id="set_form_label" class="form-label" style="display:inline-block; width:100px; text-align:right;">Set Params</label>
-              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
-                <input class="form-control" name="set_params" id="set_params" value="" placeholder="field1=new-value1, field2=new-value2" style="width:350px; margin-left:40px">
+              <label id="set_form_label" class="form-label tbl_form_label">Set Params</label>
+              <span style="display:inline-block;">
+                <input class="form-control tbl_action_input" name="set_params" id="set_params" value="" placeholder="field1=new-value1, field2=new-value2"> 
               </span>
             </div>
 
             <div class="form-row" id="params_container">
-              <label id="query_form_label" class="form-label" style="display:inline-block; width:100px; text-align:right;">Params</label>
-              <span style="display:inline-block; margin-left:auto; margin-right:auto;">
-                <input class="form-control" name="query_params" id="query_params" value="" placeholder="SELECT * FROM TABLENAME WHERE <query>" style="width:350px; margin-left:40px">
+              <label id="query_form_label" class="form-label tbl_form_label">Params</label>
+              <span style="display:inline-block;">
+                <input class="form-control tbl_action_input" name="query_params" id="query_params" value="" placeholder="SELECT * FROM TABLENAME WHERE <query>"> 
               </span>
             </div>
   
-            <div >
-              <span style="display:inline-block; margin-left:auto; margin-right:auto; width:100%; margin-top:10px; margin-bottom:10px">
-                <label class="form-control" word-wrap name="full_query" id="full_query" style="font-weight:400; width:100%; margin-left: auto; margin-right:auto; margin-top:20px; height:auto; margin-bottom:20px;border:none;background-color:none;">SELECT * FROM TABLE WHERE</label>
+            <div>
+              <span>
+                <label class="form-control tbl_sql_label" word-wrap name="full_query" id="full_query">SELECT * FROM TABLE WHERE</label>
               </span>
-              <div style="margin-left:auto; margin-right:auto; vertical-align:top;">
-                <input class="btn btn-block btn-primary" id="table_action_btn"; type="submit" value="Filter Table" style="margin-left:auto; margin-right:auto; width:200px">
+              <div>
+                <input class="btn btn-block btn-primary tbl_action_btn" id="table_action_btn"; type="submit" value="Filter Table">
               </div>
             </div>
           </form>
@@ -173,71 +171,65 @@
         <!-- START COLUMNS DISPLAY -->
         
         <% if $table_cols %>
-        <div style="display:table; margin: 0 auto">
-          <div style="margin-top:50px; width:100%;">
-            <table class="table table-striped sortable" data-sortable style="display:block; max-width:1000px; overflow:scroll;">
-              <tr><!--HEADERS-->
-              <% ["field", "type", "null", "key", "default", "extra"].each do |heading| %>
-                <td style="color:#FFF; background-color:#333;">
-                  <%= heading %>
-                </td>
-              <% end %>
+        <div style="display:table; margin: 0 auto;">
+          <table class="table table-striped sortable" data-sortable>
+            <tr><!--HEADERS-->
+            <% ["field", "type", "null", "key", "default", "extra"].each do |heading| %>
+              <td class="header_cell">
+                <%= heading %>
+              </td>
+            <% end %>
+            </tr>
+            <!-- BODY -->
+            <% $table_cols.each do |row| %>
+              <tr>
+                <% row.each do |cell| %>
+                  <td><%= cell rescue "ERR" %> </td>
+                <% end %>
               </tr>
-              <!-- BODY -->
-              <% $table_cols.each do |row| %>
-                <tr>
-                  <% row.each do |cell| %>
-                    <td><%= cell rescue "ERR" %> </td>
-                  <% end %>
-                </tr>
-              <% end %>
-            </table>
-          </div>
+            <% end %>
+          </table>
         </div>
         <% end %>
         
         <!-- START TABLE DISPLAY -->
         <% if $full_table && $table_cols.nil? %>
-        <div style="margin-top:50px; width:100%;">
-          <div style="display:table; margin: 0 auto">
-            <table class="table table-striped sortable" data-sortable style="display:block; max-width:1000px; overflow:scroll;">
-              <tr><!--HEADERS-->
-                <% $full_table.num_fields.times do |i| %>
-                <td style="color:#FFF; background-color:#333;">
-                  <%= $full_table.fetch_field_direct(i).name %>
-                  <% if $full_table.fetch_field_direct(i).is_pri_key? %>*<% end %>
-                </td>
-                <% end %>
-              </tr>
-
-              <!--BODY-->
-              <% $full_table.num_rows.times do %>
-              <tr>
-                <% row_contents = $full_table.fetch_row %>
-                <% $full_table.num_fields.times do |i| %>
-                <td >
-                  <%= row_contents[i] rescue "ERR" %>
-                </td>
-                <% end %>
-              </tr>
+        <div style="display:table; margin: 0 auto;">
+          <table class="table table-striped sortable" data-sortable>
+            <tr><!--HEADERS-->
+              <% $full_table.num_fields.times do |i| %>
+              <td class="header_cell">
+                <%= $full_table.fetch_field_direct(i).name %>
+                <% if $full_table.fetch_field_direct(i).is_pri_key? %>*<% end %>
+              </td>
               <% end %>
-            </table>
-          </div>
+            </tr>
+
+            <!--BODY-->
+            <% $full_table.num_rows.times do %>
+            <tr>
+              <% row_contents = $full_table.fetch_row %>
+              <% $full_table.num_fields.times do |i| %>
+              <td >
+                <%= row_contents[i] rescue "ERR" %>
+              </td>
+              <% end %>
+            </tr>
+            <% end %>
+          </table>
         </div>
         <% end %>
-        <!-- END TABLE DISPLAY -->
+      <!-- END TABLE DISPLAY -->
       </div>
-
       
       <!-- START CSV DOWNLOAD -->
       <% if $full_table && $table_cols.nil? %>
       <form method="post" action="/csv">
-        <div class="well" style="margin-left:auto; margin-right:auto; width:550px; margin-top:40px;">
-          <input class="btn btn-block" type="submit" value="Download Table as CSV" style="margin-left:auto; margin-right:auto; width:200px">
+        <div class="well csv_well">
+          <input class="btn btn-block csv_btn" type="submit" value="Download Table as CSV"> 
         </div>
       </form>
       <% end %>
-      <!-- END CSV DOWNLOAD -->
 
     </div><!-- /.container -->
 
@@ -246,6 +238,8 @@
     var query_params = document.getElementById("query_params");
     
     function update_query() {
+
+      // TODO: Exceptions when elements not present
       var action          = document.getElementById("query_action").value;
       var params_view     = document.getElementById("params_container");
       var params          = document.getElementById("query_params");

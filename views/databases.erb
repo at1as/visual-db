@@ -4,15 +4,12 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
     <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
 
     <title>Connect ~ Visual DB</title>
-
-    <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/starter-template.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/starter-template.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
   </head>
   <body>
 
@@ -49,60 +46,52 @@
         <% else %>
           <h3>Please select Database</h3>
         <% end %>
-        <% if !$db_error.nil? %>
-          <div style="color:red"><%= $db_error %></div>
+        <% unless $db_error.nil? %>
+          <div class="db_err"><%= $db_error %></div>
         <% end %>
-        <% if !$db_success.nil? %>
-          <div style="color:green"><%= $db_success %></div>
+        <% unless $db_success.nil? %>
+          <div class="db_update">Query OK: <%= $db_success %> Rows Affected</div>
         <% end %>
-        <div style="width:350px; margin-left:auto; margin-right:auto">
 
-
-          <div class="well" style="margin-left:auto; margin-right:auto; margin-top:40px;">
-            
-            <form style="margin-top:20px;" method="post" action="/databases">
-              <select class="form-control" name="select_database" id="select_database">
-                <% $db_list.each do |database| %>
-                  <% if database == $db_name %>
-                    <option selected><%= database %></option>
-                  <% else %>
-                    <option><%= database %></option>
-                  <% end %>
-                <% end %>
-              </select>
-              <% if $db_list.length > 0 %>
-                <input class="btn btn-block btn-primary" type="submit" value="Use Database" style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px"/>
-            <% end %>
-            </form>
-            
-            <hr style="border-color:#CCC; margin-top:30px; margin-bottom:30px;">
-
-            <form style="" method="post" action="/database">
-              <!--<div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; margin-top:35px; width:200px" onclick="show_create()">Create New DB</div>-->
-              <input class="form-control" name="database" value="" placeholder="Database Name">
-              <input type="hidden" name="action" value="create">
-              <input class="btn btn-block" type="submit" value="Create Database" style="margin-bottom:10px; margin-top:10px; width:200px; margin-left:auto; margin-right:auto;">
-            </form>
-            
-            <form style="margin-top:30px;" method="post" action="/database">
-              <!--<div class="btn btn-block btn-primary" style="margin-left:auto; margin-right:auto; margin-top:10px; width:200px">Drop DB</div>-->
-              <!--<input class="form-control" name="database" value="" placeholder="Name of Database to Delete">-->
-              <input type="hidden" name="action" value="delete">
-              <select class="form-control" name="database" id="database">
-                <% $db_list.each do |database| %>
+        <div class="well db_well">
+          
+          <form method="post" action="/databases" style="margin-top:20px;">
+            <select class="form-control" name="select_database" id="select_database">
+              <% $db_list.each do |database| %>
+                <% if database == $db_name %>
+                  <option selected><%= database %></option>
+                <% else %>
                   <option><%= database %></option>
                 <% end %>
-              </select>
-              <input class="btn btn-block" type="submit" value="Delete Database" style="margin-bottom:10px; margin-top:10px; width:200px; margin-left:auto; margin-right:auto;">
-            </form>
-          </div><!--/.well -->
-        </div>
-      </div><!-- /.starter-template -->
-    </div><!-- /.container -->
+              <% end %>
+            </select>
+            <% if $db_list.length > 0 %>
+              <input class="btn btn-block btn-primary db_btn" type="submit" value="Use Database">
+          <% end %>
+          </form>
+          
+          <hr>
+
+          <form style="" method="post" action="/database">
+            <input class="form-control" name="database" value="" placeholder="Database Name">
+            <input type="hidden" name="action" value="create">
+            <input class="btn btn-block db_btn" type="submit" value="Create Database">
+          </form>
+          
+          <form method="post" action="/database" style="margin-top:30px">
+            <input type="hidden" name="action" value="delete">
+            <select class="form-control" name="database" id="database">
+              <% $db_list.each do |database| %>
+                <option><%= database %></option>
+              <% end %>
+            </select>
+            <input class="btn btn-block db_btn" type="submit" value="Delete Database">
+          </form>
+        </div><!--/.well -->
+    </div><!-- /.starter-template -->
+  </div><!-- /.container -->
 
   <script type="javascript">
-
-
   </script>
   </body>
 </html>

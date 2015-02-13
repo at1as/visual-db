@@ -4,15 +4,12 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
     <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
 
     <title>Connect ~ Visual DB</title>
-
-    <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/starter-template.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
   </head>
   <body>
 
@@ -48,9 +45,9 @@
           <h3>Please enter your MySQL credentials</h3>
         <% end %>
         <% if $db_error %>
-          <span style="color:red"><%= $db_error %></span>
+          <span class="db_err"><%= $db_error %></span>
         <% end %>
-        <div class="well" style="width:350px; margin-left:auto; margin-right:auto; margin-top:40px">
+        <div class="well login_well">
           <form method="post" action="/connect">
             <b>Host</b>
             <input class="form-control" name="hostname" id="hostname" value="localhost" >
@@ -61,13 +58,13 @@
             <b>Password</b>
             <input class="form-control" name="password" id="password" placeholder="" >
             <% if !$sql_conn %>
-              <input class="btn btn-block btn-primary" type="submit" value="Connect" style="margin-left:auto; margin-right:auto; margin-top:30px; width:200px"/>
+              <input class="btn btn-block btn-primary login_btn" type="submit" value="Connect">
             <% end %>
           </form>
         
           <% if $sql_conn %>
-          <form style="margin-top:30px" method="post" action="/disconnect">
-            <input class="btn btn-block btn-primary" type="submit" value="Disconnect"style="margin-left:auto; margin-right:auto; width:200px;"/>
+          <form method="post" action="/disconnect">
+            <input class="btn btn-block btn-primary login_btn" type="submit" value="Disconnect">
           </form>
           <% end %>
         
@@ -75,7 +72,6 @@
       </div><!-- /.starter-template -->
 
     </div><!-- /.container -->
-
 
   </body>
 </html>
