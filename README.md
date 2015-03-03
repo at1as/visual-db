@@ -1,4 +1,4 @@
-# Visual DB
+# Visual DB [![Gem Version](https://badge.fury.io/rb/visual_db.svg)](http://badge.fury.io/rb/visual_db)
 
 Visual DB is web utility to connect to local or remote MySQL instances and view & modify data. Visual DB is meant to be quick and easy to use, and reduce some potential for errors in user queries. Visual DB is a resource well suited for those just getting started with SQL syntax.
 
@@ -17,7 +17,7 @@ Visual DB is web utility to connect to local or remote MySQL instances and view 
 
 ### Installation
 
-To install the Ruby Gem (which is generally more stable, but several commits behind this repository):
+To install the [Ruby Gem](https://rubygems.org/gems/visual_db) (which is generally more stable, but several commits behind this repository):
 
 ```bash
 gem install visual_db
