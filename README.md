@@ -1,10 +1,10 @@
 # Visual DB
 
-Visual DB is web utility to connect to local or remote MySQL instances and view & modify data. Visual DB is meant to be quick, easy to use, and reduce some potential for errors in user queries. Visual DB is a resource well suited for those just getting started with SQL syntax.
+Visual DB is web utility to connect to local or remote MySQL instances and view & modify data. Visual DB is meant to be quick and easy to use, and reduce some potential for errors in user queries. Visual DB is a resource well suited for those just getting started with SQL syntax.
 
 ### Screenshots
 
-* TODO
+* ![screenshot](https://github.com/at1as/at1as.github.io/blob/master/github_repo_assets/visual_db.jpg)
 
 ### Features
 
@@ -35,4 +35,3 @@ To install this repo directory, simply clone assign appropriate permissions, and
 
 * UI Work
 * More UI guided SQL query generation
-* Better README
