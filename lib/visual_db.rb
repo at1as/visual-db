@@ -109,6 +109,13 @@ end
 ## General Filters
 before do
   connection_redir '/' unless NO_AUTH_PATHS.include? request.path_info
+  begin
+    $sql_conn.ping() if $sql_conn
+  rescue Mysql::Error => e
+    error_logger("#{e} (error no. #{$sql_conn.errno rescue "\"nil\""}). Please reconnect")
+    $sql_conn = false
+    redirect "/?error=true"
+  end
   $db_error   = nil unless params[:error]
   $db_success = nil unless params[:success]
   $table_cols = nil unless params[:query_action] == "showcols"
