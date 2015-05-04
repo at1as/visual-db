@@ -97,7 +97,7 @@ configure do
   $db_success = nil       # SQL Rows Affected response
 
   API_VERSION   = "1.0"
-  NO_AUTH_PATHS = ["/", "/connect", "/disconnect", "/about"]
+  NO_AUTH_PATHS = ["/", "/connect", "/disconnect", "/about", "/env"]
 
   set :bind, '0.0.0.0'
   set :show_exceptions, true

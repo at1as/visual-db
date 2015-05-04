@@ -1,11 +1,13 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
+require 'date'
 require 'visual_db/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "visual_db"
-  spec.date          = "2015-04-04"
+  spec.date          = Date.today.to_s
   spec.version       = VisualDb::VERSION
   spec.authors       = ["Jason Willems"]
   spec.email         = ["jason@willems.ca"]
