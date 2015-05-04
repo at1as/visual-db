@@ -5,7 +5,7 @@ require 'visual_db/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "visual_db"
-  spec.date          = "2015-02-13"
+  spec.date          = "2015-04-04"
   spec.version       = VisualDb::VERSION
   spec.authors       = ["Jason Willems"]
   spec.email         = ["jason@willems.ca"]
