@@ -50,13 +50,13 @@
         <div class="well login_well">
           <form method="post" action="/connect">
             <b>Host</b>
-            <input class="form-control" name="hostname" id="hostname" value="localhost" >
+            <input class="form-control" name="hostname" id="hostname" value="localhost" <% if $sql_conn %>readonly<% end %>>
             <b>Port</b>
-            <input class="form-control" name="port" id="port" value="3306" >
+            <input class="form-control" name="port" id="port" value="3306" <% if $sql_conn %>readonly<% end %>>
             <b>Username</b>
-            <input class="form-control" name="username" id="username" value="root" autofocus >
+            <input class="form-control" name="username" id="username" value="root" <% if $sql_conn %>readonly<% else %>autofocus<% end %>>
             <b>Password</b>
-            <input class="form-control" name="password" id="password" placeholder="" >
+            <input class="form-control" name="password" id="password" placeholder="" <% if $sql_conn %>readonly<% end %>>
             <% if !$sql_conn %>
               <input class="btn btn-block btn-primary login_btn" type="submit" value="Connect">
             <% end %>
